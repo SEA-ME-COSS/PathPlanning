@@ -14,7 +14,7 @@ namespace plt = matplotlibcpp;
 
 int main() {
     // Load G
-    std::string map_file_path = "../globalmap/track.txt";
+    std::string map_file_path = "../globalmap/flipped-track.txt";
     std::string nodes_file_path = "../globalmap/parsinginfo.txt";
     std::string waypoints_file_path = "../globalmap/test-waypoints.txt";
 
