@@ -13,27 +13,20 @@
 namespace plt = matplotlibcpp;
 
 int main() {
-    // Load G
-    std::string map_file_path = "../globalmap/flipped-track.txt";
+    // Load Waypoints Info
     std::string nodes_file_path = "../globalmap/parsinginfo.txt";
     std::string waypoints_file_path = "../globalmap/test-waypoints.txt";
+    std::vector<std::vector<double>> waypoints = load_waypoints(nodes_file_path, waypoints_file_path);
 
     // Make Map instruction
+    std::string map_file_path = "../globalmap/flipped-track.txt";
     Map map = Map(map_file_path);
-
-    // Set Waypoints
-    std::vector<std::vector<int>> waypoints;
-    waypoints = load_waypoints(nodes_file_path, waypoints_file_path);
 
     // Path Planner (Using same map)
     auto planner = A_Star(map);
     // auto planner = A_Star(map);
     planner.plan_with_waypoints(waypoints);
     std::vector<std::vector<int>> route = planner.get_waypoints_path();
-
-    // for (size_t i = 0; i < route.size(); ++i) {
-    //     std::cout<<"x: "<<route[i][0]<<" y: "<<route[i][1]<<std::endl;
-    // }
 
     // Only for drawing
     std::cout << "Draw Map" << std::endl;

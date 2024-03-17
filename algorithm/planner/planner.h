@@ -14,7 +14,7 @@ public:
     Planner(Map& map);
     ~Planner();
 
-    void plan_with_waypoints(std::vector<std::vector<int>> waypoints);
+    void plan_with_waypoints(std::vector<std::vector<double>> waypoints);
     std::vector<std::vector<int>> get_waypoints_path();
 
 protected:
@@ -49,7 +49,7 @@ void Planner::clear_storage() {
     this->iteration_path.clear();
 }
 
-void Planner::plan_with_waypoints(std::vector<std::vector<int>> waypoints) {
+void Planner::plan_with_waypoints(std::vector<std::vector<double>> waypoints) {
     int waypoints_size = waypoints.size();
 
     std::cout<<"start_x : "<<waypoints[0][0]<<'\t'<<"start_y : "<<waypoints[0][1]<<std::endl;
@@ -57,9 +57,12 @@ void Planner::plan_with_waypoints(std::vector<std::vector<int>> waypoints) {
 
     for(int k = 0; k < (waypoints_size-1); ++k) {
         this->clear_storage();
+            
+        std::vector<int> start_point = {static_cast<int>(round(waypoints[k][0])), static_cast<int>(round(waypoints[k][1]))};
+        std::vector<int> end_point = {static_cast<int>(round(waypoints[k+1][0])), static_cast<int>(round(waypoints[k+1][1]))};
 
-        if (this->path_planning(waypoints[k], waypoints[k+1])) {
-            this->save_planned_path(waypoints[k], waypoints[k+1]);
+        if (this->path_planning(start_point, end_point)) {
+            this->save_planned_path(start_point, end_point);
             for (size_t i = 0; i < iteration_path.size(); ++i) {
                 waypoints_route.push_back(iteration_path[i]);
             }
