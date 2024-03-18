@@ -49,7 +49,7 @@ std::map<int, std::vector<double>> load_nodes(const std::string& file_path) {
         while (std::getline(ss, value, ',')) {
             nodeData.push_back(std::stod(value)); 
         }
-        nodes[nodeData[0]] = {nodeData[1], nodeData[2]};
+        nodes[static_cast<int>(nodeData[0])] = {nodeData[1], nodeData[2]};
     }
 
     file.close();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utils/map.h>
-#include <utils/point.h>
 
 #include <deque>
 #include <array>
@@ -19,8 +18,6 @@ public:
 
 protected:
     Map& map;
-    std::vector<int> map_info;
-    // int max_iter;
 
     // Deque(to Visit) and Map(Current & Previous) for Graph Search
     std::map<std::vector<int>, std::vector<int>> visit_map;
@@ -37,10 +34,7 @@ protected:
     std::vector<std::vector<int>> waypoints_route;
 };
 
-Planner::Planner(Map& map) : map(map) {
-    this->map_info = map.get_map_info();
-    // this->max_iter = 1000;
-}
+Planner::Planner(Map& map) : map(map) {}
 
 Planner::~Planner() {}
 
@@ -72,6 +66,7 @@ void Planner::plan_with_waypoints(std::vector<std::vector<double>> waypoints) {
             break;    
         }
     }
+    // std::cout << "Plan Finish" << std::endl;
 }
 
 std::vector<std::vector<int>> Planner::get_waypoints_path() {

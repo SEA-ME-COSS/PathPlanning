@@ -20,8 +20,7 @@ private:
     int heuristic(std::vector<int> point, std::vector<int> end_point);
 };
 
-A_Star::A_Star(Map& map) : Planner(map) {
-}
+A_Star::A_Star(Map& map) : Planner(map) {}
 
 A_Star::~A_Star() {}
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <utils/point.h>
 #include <utils/loader.h>
 
 #include <vector>
+#include <cmath>
 #include <iostream>
 
 class Map {
@@ -11,7 +11,8 @@ public:
     Map(const std::string& map_path);
     ~Map();
 
-    std::vector<std::vector<Point>> get_map();
+    std::vector<std::vector<int>> get_grid_map();
+    std::vector<std::vector<bool>> get_binary_map();
     std::vector<int> get_map_info();
 
     bool is_blocked(std::vector<int> point);
@@ -21,8 +22,10 @@ private:
     int cols;
 
     bool is_outside(std::vector<int> point);
+    void set_grid_map(std::vector<std::vector<int>> *map_data);
+    void set_binary_map(std::vector<std::vector<int>> *map_data);
 
-    std::vector<std::vector<Point>> grid_map;
+    std::vector<std::vector<int>> grid_map;
     std::vector<std::vector<bool>> booleanMapData;
 };
 
@@ -31,51 +34,99 @@ Map::Map(const std::string& map_path) {
     this->rows = map_data[0].size();
     this->cols = map_data.size();
 
-    std::cout << rows << " , " << cols << std::endl;
+    this->set_grid_map(&map_data);
+    this->set_binary_map(&map_data);
 
-    grid_map.resize(rows, std::vector<Point>(cols, Point()));
+    std::cout << "Map Init Success" << std::endl;
+}
+
+Map::~Map() {}
+
+void Map::set_grid_map(std::vector<std::vector<int>> *map_data) {
+    this->grid_map.resize(rows, std::vector<int>(cols, 0));
 
     for (int x = 0; x < rows; ++x) {
         for (int y = 0; y < cols; ++y) {
-            uint8_t map_value = map_data[y][x];
-            grid_map[x][y].structure = map_value;
+            grid_map[x][y] = (*map_data)[y][x];
+        }
+    }
+    // std::cout << "Grid Map Size: " << grid_map.size() << " x " << grid_map[0].size() << std::endl;  
+}
+
+void Map::set_binary_map(std::vector<std::vector<int>> *map_data) {
+    this->booleanMapData.resize(rows, std::vector<bool>(cols, false));
+
+    // Make Binary Map
+    for(int y=0; y<cols; ++y) {
+        for(int x=0; x<rows; ++x) {
+            uint8_t map_value = (*map_data)[y][x];
             switch (map_value) {
-                case 1: // solidline
-                case 6: // roundabout
-                    grid_map[x][y].blocked = true;
+                case 0: // Driveway
+                case 2: // Parking Spot
+                case 3: // Dotted Line
+                case 4: // Stop Line
+                case 5: // Crosswalk
+                    // CAN
+                    booleanMapData[x][y] = false;
                     break;
-                case 0: // stopline
-                case 2: // crosswalk
-                case 3: // dottedline
-                case 4: // parkinglot
-                case 5: // startline
-                    grid_map[x][y].blocked = false;
+                case 1: // Solid Line
+                case 6: // Roundabout
+                    // CANNOT
+                    booleanMapData[x][y] = true;
                     break;
                 default:
-                    std::cerr << "Invalid map value: " << static_cast<int>(map_value) << " at (" << x << ", " << y << ")\n";
+                    std::cerr << "Invalid binary_occupancy_map value: " << static_cast<int>(map_value) << " at (" << x << ", " << y << ")\n";
                     exit(EXIT_FAILURE);
                     break;
             }
         }
     }
 
-
-    booleanMapData.resize(rows, std::vector<bool>(cols, false));
-
-    for (int y = 0; y < cols; ++y) {
-        for (int x = 0; x < rows; ++x) {
-            uint8_t map_value = map_data[y][x];
-            // Assuming 1 and 6 represent blocked areas
-            booleanMapData[x][y] = map_value == 1 || map_value == 6;
+    // Make the lanes thicker
+    int extra = 16;
+    for(int y=0; y<cols; ++y) {
+        for(int x=0; x<rows; ++x) {
+            uint8_t map_value = (*map_data)[y][x];
+            switch (map_value) {
+                case 0: // Driveway
+                case 2: // Parking Spot
+                case 3: // Dotted Line
+                case 4: // Stop Line
+                case 5: // Crosswalk
+                    // CAN
+                    break;
+                case 1: // Solid Line
+                case 6: // Roundabout
+                    // CANNOT
+                    for (int dx = -extra; dx <= extra; ++dx) {
+                        for (int dy = -extra; dy <= extra; ++dy) {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            if (dx == 0 && dy == 0) {continue;}
+                            if (nx < 0 || nx >= rows || ny < 0 || ny >= cols) {continue;} 
+                            if (booleanMapData[nx][ny]) {continue;}
+                            if (std::sqrt(std::pow(nx-x,2) + std::pow(ny-y,2))>extra) {continue;}
+                            booleanMapData[nx][ny] = true;
+                            // grid_map[nx][ny] = 10;
+                        }
+                    }
+                    break;
+                default:
+                    std::cerr << "Invalid binary_occupancy_map value: " << static_cast<int>(map_value) << " at (" << x << ", " << y << ")\n";
+                    exit(EXIT_FAILURE);
+                    break;
+            }
         }
     }
-    std::cout << "Map Size: " << grid_map.size() << " x " << grid_map[0].size() << std::endl;    
+    // std::cout << "Binary Map Size: " << grid_map.size() << " x " << grid_map[0].size() << std::endl;  
 }
 
-Map::~Map() {}
-
-std::vector<std::vector<Point>> Map::get_map() {
+std::vector<std::vector<int>> Map::get_grid_map() {
     return grid_map;
+}
+
+std::vector<std::vector<bool>> Map::get_binary_map() {
+    return booleanMapData;
 }
 
 std::vector<int> Map::get_map_info() {
@@ -83,25 +134,12 @@ std::vector<int> Map::get_map_info() {
     return map_info;
 }
 
-// bool Map::is_blocked(std::vector<int> point) {
-//     if (is_outside(point)) {return true;}
-
-//     if (grid_map[point[0]][point[1]].blocked) {return true;}
-//     return false;
-// }
-
-// bool Map::is_outside(std::vector<int> point) {
-//     if (point[0]<0 || rows<=point[0]) {return true;}
-//     else if (point[1]<0 || cols<=point[1]) {return true;}
-//     else {return false;}
-// }
-
 bool Map::is_blocked(std::vector<int> point) {
-    // 지도 바깥에 있는지 확인
+    // Is outside
     if (point[0] < 0 || point[0] >= rows || point[1] < 0 || point[1] >= cols) {
-        return true; // 지도 바깥에 있는 경우, 자동으로 차단된 것으로 처리
+        return true;
     }
 
-    // 지도 내부의 지점이 차단되었는지 확인
+    // If blocked true
     return booleanMapData[point[0]][point[1]];
 }
