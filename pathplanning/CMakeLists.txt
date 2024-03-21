@@ -22,9 +22,9 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(vision_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-# find_package(geometry_msgs REQUIRED)
-# find_package(tf2 REQUIRED)
-# find_package(tf2_geometry_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -46,10 +46,17 @@ include_directories(
 add_executable(${PROJECT_NAME}
   src/path_planning.cpp
   src/main.cpp
+  src/utils/map.cpp
+  src/utils/loader.cpp
+  src/planner/planner.cpp
+  src/planner/a_star.cpp
+  src/planner/bfs.cpp
+  src/decision_making/decision_making.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs vision_msgs nav_msgs)
+ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs vision_msgs nav_msgs geometry_msgs nav_msgs tf2 tf2_geometry_msgs)
 
 install(TARGETS
   ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
