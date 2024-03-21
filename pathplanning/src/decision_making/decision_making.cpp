@@ -15,19 +15,11 @@ DecisionMaking::DecisionMaking(VehicleState current_state, float normal_throttle
     this->normal_throttle = normal_throttle;
 
     // Timer
-    this->stopnow_timecheck = false;
-    this->stopnow_stoptime = std::chrono::steady_clock::time_point::min();
-
-    this->stopafter_timecheck = false;
-    this->stopafter_stoptime = std::chrono::steady_clock::time_point::min();
-
     this->crosswalknow_timecheck = false;
     this->crosswalknow_stoptime = std::chrono::steady_clock::time_point::min();
 
     // Initialization
-    this->stopline_mindistance = stopline_mindistance;
-    this->stopsign_ignore = stopsign_ignore;
-    this->crosswalksign_ignore = crosswalksign_ignore;
+    this->crosswalksign_ignore = 3.0;
 }
 
 DecisionMaking::DecisionMaking() {
@@ -47,20 +39,9 @@ void DecisionMaking::decide() {
     switch (current_state) {
         case VehicleState::Driving:
             if (sign_info=="None") { current_state = VehicleState::Driving; }
-            else if (sign_info=="stop") { current_state = VehicleState::StopBefore; }
             else if (sign_info=="crosswalk") { current_state = VehicleState::CrosswalkBefore; }
             else if (sign_info=="priority") { current_state = VehicleState::Priority;}
             else { current_state = VehicleState::Driving; }
-            break;
-        case VehicleState::StopBefore:
-            if((*stopline)[0].distance > 0 && (*stopline)[0].distance < this->stopline_mindistance) {
-                this->current_state = VehicleState::StopNow;
-            }
-            break;
-        case VehicleState::StopNow:
-            // 여기서 상태가 결정나야 하는데;
-            break;
-        case VehicleState::StopAfter:
             break;
         case VehicleState::CrosswalkBefore:
             if((*stopline)[0].distance > 0 && (*stopline)[0].distance < this->stopline_mindistance) {
@@ -85,15 +66,6 @@ void DecisionMaking::decide() {
         case VehicleState::Driving:
             DefaultState();
             break;
-        case VehicleState::StopBefore:
-            StopBeforeState();
-            break;
-        case VehicleState::StopNow:
-            StopNowState();
-            break;
-        case VehicleState::StopAfter:
-            StopAfterState();
-            break;
         case VehicleState::CrosswalkBefore:
             CrosswalkBeforeState();
             break;
@@ -115,45 +87,6 @@ void DecisionMaking::decide() {
 void DecisionMaking::DefaultState() {
     std::cout << "Default Status" << std::endl;
     this->throttle = this->normal_throttle;
-}
-
-void DecisionMaking::StopBeforeState() {
-    std::cout << "Stop Before Status" << std::endl;
-    this->throttle = this->normal_throttle;
-}
-
-void DecisionMaking::StopNowState() {
-    std::cout << "Stop Now Status" << std::endl;
-    if (!this->stopnow_timecheck) {
-        this->stopnow_timecheck = true;
-        this->stopnow_stoptime = std::chrono::steady_clock::now();
-        this->throttle = 0.0;
-    } 
-    else {
-        auto now = std::chrono::steady_clock::now();
-        auto time_gap = std::chrono::duration_cast<std::chrono::seconds>(now - this->stopnow_stoptime).count();
-        if (time_gap >= 3) {
-            this->current_state = VehicleState::StopAfter;
-            this->stopnow_timecheck = false; 
-        }
-    }
-}
-
-void DecisionMaking::StopAfterState() {
-    std::cout << "Stop After Status" << std::endl;
-    if (!this->stopafter_timecheck) {
-        this->stopafter_timecheck = true;
-        this->stopafter_stoptime = std::chrono::steady_clock::now();
-        this->throttle = this->normal_throttle;
-    } 
-    else {
-        auto now = std::chrono::steady_clock::now();
-        auto time_gap = std::chrono::duration_cast<std::chrono::seconds>(now - this->stopafter_stoptime).count();
-        if (time_gap >= this->stopsign_ignore) {
-            this->current_state = VehicleState::Driving;
-            this->stopafter_timecheck = false; 
-        }
-    }
 }
 
 void DecisionMaking::CrosswalkBeforeState() {

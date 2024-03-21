@@ -4,12 +4,10 @@
 
 enum class VehicleState {
     Driving,
-    StopBefore,
-    StopNow,
-    StopAfter,
     CrosswalkBefore,
     CrosswalkAfter,
-    Priority
+    CrosswalkNow,
+    Priority,
 };
 
 struct Sign {
