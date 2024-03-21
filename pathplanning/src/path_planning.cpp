@@ -11,10 +11,10 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     Map map = Map(map_file_path);
 
     // Path Planner
-    auto planner = A_Star(map);
-    // auto planner = BFS(map);
+    this->planner = A_Star(map);
+    // this->planner = BFS(map);
     planner.plan_with_waypoints(waypoints);
-    this->route = planner.get_waypoints_path();
+    this->path = planner.get_waypoints_path();
 
     // Decision Making
     VehicleState current_state = VehicleState::Driving;
@@ -28,7 +28,6 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     this->use_object = false;
     this->use_stopline = false;
     this->use_light = false;
-
     this->use_pose = false;
 
      // Initialization
@@ -46,6 +45,8 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
         "/perception/stopline", 10, std::bind(&PathPlanning::stopline_callback, this,  std::placeholders::_1));
     light_subscription_ = this->create_subscription<std_msgs::msg::String>(
         "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
+    pose_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+        "/localization/pose", 10, std::bind(&PathPlanning::pose_callback, this,  std::placeholders::_1));
 
     // ROS Publisher
     path_publisher_ = this->create_publisher<nav_msgs::msg::Path>(
@@ -75,15 +76,23 @@ void PathPlanning::stopline_callback(const vision_msgs::msg::Classification2D::S
 
 void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
     this->light_msg = light_msg;
-}   
+}
+
+void PathPlanning::pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg) {
+    this->pose_msg = pose_msg;
+}
 
 void PathPlanning::publisher_timer_callback() {
-    // Use Message Validation
+   // Use Message Validation
     if (!this->isUseMessageValid()) {return;}
 
     // Update Using Messages to Decision Making
     this->updateUseMessages();
+    // Decision Making with Using Messages
+    this->decision_making.decide();
 
+    this->throttle = static_cast<int>(this->velocity_factor * this->decision_making.getThrottle());
+    
     this->publish_path();
     this->publish_throttle();
 }
@@ -187,8 +196,8 @@ float PathPlanning::quat_to_yaw(const geometry_msgs::msg::Quaternion quat) {
 void PathPlanning::addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose) {
     geometry_msgs::msg::PoseStamped pose_stamped;
 
-    pose_stamped.pose.position.x = pose[0];
-    pose_stamped.pose.position.y = pose[1];
+    pose_stamped.pose.position.x = pose[0]*this->factor_x;
+    pose_stamped.pose.position.y = pose[1]*this->factor_y;
     
     tf2::Quaternion quat;
     quat.setRPY(0, 0, pose[2]);
