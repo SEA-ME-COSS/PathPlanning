@@ -1,4 +1,4 @@
-#include "planner/bfs.h"
+#include "planner/bfs.hpp"
 
 BFS::BFS(Map& map) : Planner(map) {
 }

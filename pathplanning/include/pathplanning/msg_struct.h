@@ -31,3 +31,9 @@ struct Object {
 struct StopLine {
     float distance;
 };
+
+struct Pose {
+    float x;
+    float y;
+    float heading;
+};

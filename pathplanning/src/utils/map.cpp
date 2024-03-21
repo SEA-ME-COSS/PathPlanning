@@ -1,4 +1,4 @@
-#include "map.h"
+#include "map.hpp"
 
 Map::Map(const std::string& map_path) {
     std::vector<std::vector<int>> map_data = load_map_data(map_path);

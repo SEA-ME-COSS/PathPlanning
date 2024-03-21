@@ -1,6 +1,6 @@
 #pragma once
 
-#include "planner/planner.h"
+#include "planner/planner.hpp"
 
 class BFS : public Planner {
 public:

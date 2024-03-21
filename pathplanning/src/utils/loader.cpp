@@ -1,4 +1,4 @@
-#include "loader.h"
+#include "loader.hpp"
 
 std::vector<std::vector<int>> load_map_data(const std::string& file_path) {
     std::ifstream file(file_path);

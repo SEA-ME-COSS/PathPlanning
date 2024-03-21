@@ -1,4 +1,4 @@
-#include "path_planning.h"
+#include "path_planning.hpp"
 
 PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // Load Waypoints Info

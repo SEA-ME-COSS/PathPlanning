@@ -1,4 +1,4 @@
-#include "planner/a_star.h"
+#include "planner/a_star.hpp"
 
 A_Star::A_Star(Map& map) : Planner(map) {}
 
