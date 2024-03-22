@@ -24,7 +24,8 @@ void Planner::plan_with_waypoints(std::vector<std::vector<double>> waypoints) {
         if (this->path_planning(start_point, end_point)) {
             this->save_planned_path(start_point, end_point);
             for (size_t i = 0; i < iteration_path.size(); ++i) {
-                waypoints_route.push_back(iteration_path[i]);
+                std::vector<double> double_point = {static_cast<double>(iteration_path[i][0]), static_cast<double>(iteration_path[i][1])};
+                waypoints_route.push_back(double_point);
             }
         }
         else {
@@ -35,7 +36,7 @@ void Planner::plan_with_waypoints(std::vector<std::vector<double>> waypoints) {
     // std::cout << "Plan Finish" << std::endl;
 }
 
-std::vector<std::vector<int>> Planner::get_waypoints_path() {
+std::vector<std::vector<double>> Planner::get_waypoints_path() {
     return waypoints_route;
 }
 

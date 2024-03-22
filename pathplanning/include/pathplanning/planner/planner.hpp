@@ -14,7 +14,7 @@ public:
     ~Planner();
 
     void plan_with_waypoints(std::vector<std::vector<double>> waypoints);
-    std::vector<std::vector<int>> get_waypoints_path();
+    std::vector<std::vector<double>> get_waypoints_path();
 
 protected:
     Map& map;
@@ -31,5 +31,5 @@ protected:
     virtual void save_planned_path(std::vector<int> start_point, std::vector<int> end_point) = 0;
 
     std::deque<std::vector<int>> iteration_path;
-    std::vector<std::vector<int>> waypoints_route;
+    std::vector<std::vector<double>> waypoints_route;
 };

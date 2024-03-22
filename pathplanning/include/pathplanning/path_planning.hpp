@@ -44,18 +44,18 @@ private:
     Pose pose;
 
     vision_msgs::msg::Classification2D::SharedPtr sign_msg;
-    vision_msgs::msg::Classification2D::SharedPtr light_msg;
-    vision_msgs::msg::Detection2D::SharedPtr object_msg;
+    // vision_msgs::msg::Classification2D::SharedPtr light_msg;
+    // vision_msgs::msg::Detection2D::SharedPtr object_msg;
     geometry_msgs::msg::PoseStamped::SharedPtr pose_msg;
-    vision_msgs::msg::Classification2D::SharedPtr stopline_msg;
+    // vision_msgs::msg::Classification2D::SharedPtr stopline_msg;
 
     bool use_sign;
-    bool use_light;
-    bool use_object;
+    // bool use_light;
+    // bool use_object;
     bool use_pose;
-    bool use_stopline;
+    // bool use_stopline;
 
-    std::vector<std::vector<int>> path;
+    std::vector<std::vector<double>> path;
     int throttle;
     int state;
     bool normal_throttle;
@@ -64,9 +64,9 @@ private:
     double factor_y;
 
     rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr sign_subscription_;
-    rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr light_subscription_;
-    rclcpp::Subscription<vision_msgs::msg::Detection2D>::SharedPtr object_subscription_;
-    rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr stopline_subscription_;
+    // rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr light_subscription_;
+    // rclcpp::Subscription<vision_msgs::msg::Detection2D>::SharedPtr object_subscription_;
+    // rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr stopline_subscription_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_subscription_;
 
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_publisher_;
@@ -75,10 +75,10 @@ private:
     rclcpp::TimerBase::SharedPtr publisher_timer_;
 
     void sign_callback(const vision_msgs::msg::Classification2D::SharedPtr sign_msg);
-    void light_callback(const vision_msgs::msg::Classification2D::SharedPtr light_msg);
-    void object_callback(const vision_msgs::msg::Detection2D::SharedPtr object_msg);
+    // void light_callback(const vision_msgs::msg::Classification2D::SharedPtr light_msg);
+    // void object_callback(const vision_msgs::msg::Detection2D::SharedPtr object_msg);
     void pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg);
-    void stopline_callback(const vision_msgs::msg::Classification2D::SharedPtr stopline_msg);
+    // void stopline_callback(const vision_msgs::msg::Classification2D::SharedPtr stopline_msg);
 
     void publisher_timer_callback();
 
@@ -89,13 +89,11 @@ private:
     void publish_state();
 
     void update_sign();
-    void update_light();
-    void update_object();
+    // void update_light();
+    // void update_object();
     void update_pose();
-    void update_stopline();
+    // void update_stopline();
 
     float quat_to_yaw(const geometry_msgs::msg::Quaternion quat_msg);
     void addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose);
-
-    void isPathOver();
 };

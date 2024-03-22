@@ -25,9 +25,9 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
 
     // Activate ROS2 Message
     this->use_sign = false;
-    this->use_object = false;
-    this->use_stopline = false;
-    this->use_light = false;
+    // this->use_object = false;
+    // this->use_stopline = false;
+    // this->use_light = false;
     this->use_pose = false;
 
      // Initialization
@@ -39,12 +39,12 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // ROS Subscription
     sign_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
         "/perception/sign", 10, std::bind(&PathPlanning::sign_callback, this,  std::placeholders::_1));
-    object_subscription_ = this->create_subscription<vision_msgs::msg::Detection2D>(
-        "/perception/object", 10, std::bind(&PathPlanning::object_callback, this,  std::placeholders::_1));
-    stopline_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
-        "/perception/stopline", 10, std::bind(&PathPlanning::stopline_callback, this,  std::placeholders::_1));
-    light_subscription_ = this->create_subscription<std_msgs::msg::String>(
-        "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
+    // object_subscription_ = this->create_subscription<vision_msgs::msg::Detection2D>(
+    //     "/perception/object", 10, std::bind(&PathPlanning::object_callback, this,  std::placeholders::_1));
+    // stopline_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
+    //     "/perception/stopline", 10, std::bind(&PathPlanning::stopline_callback, this,  std::placeholders::_1));
+    // light_subscription_ = this->create_subscription<std_msgs::msg::In8MultiArray>(
+    //     "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
     pose_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/localization/pose", 10, std::bind(&PathPlanning::pose_callback, this,  std::placeholders::_1));
 
@@ -66,17 +66,17 @@ void PathPlanning::sign_callback(const vision_msgs::msg::Classification2D::Share
     this->sign_msg = sign_msg;
 }
 
-void PathPlanning::object_callback(const vision_msgs::msg::Detection2D::SharedPtr object_msg) {
-    this->object_msg = object_msg;
-}
+// void PathPlanning::object_callback(const vision_msgs::msg::Detection2D::SharedPtr object_msg) {
+//     this->object_msg = object_msg;
+// }
 
-void PathPlanning::stopline_callback(const vision_msgs::msg::Classification2D::SharedPtr stopline_msg) {
-    this->stopline_msg = stopline_msg;
-}
+// void PathPlanning::stopline_callback(const vision_msgs::msg::Classification2D::SharedPtr stopline_msg) {
+//     this->stopline_msg = stopline_msg;
+// }
 
-void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
-    this->light_msg = light_msg;
-}
+// void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
+//     this->light_msg = light_msg;
+// }
 
 void PathPlanning::pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg) {
     this->pose_msg = pose_msg;
@@ -91,7 +91,7 @@ void PathPlanning::publisher_timer_callback() {
     // Decision Making with Using Messages
     this->decision_making.decide();
 
-    this->throttle = static_cast<int>(this->velocity_factor * this->decision_making.getThrottle());
+    this->throttle = static_cast<int>(this->decision_making.getThrottle());
     
     this->publish_path();
     this->publish_throttle();
@@ -99,17 +99,18 @@ void PathPlanning::publisher_timer_callback() {
 
 bool PathPlanning::isUseMessageValid() {
     if (this->use_sign) {if (!this->sign_msg) {return false;}}
-    if (this->use_light) {if (!this->light_msg) {return false;}}
-    if (this->use_object) {if (!this->object_msg) {return false;}}
-    if (this->use_stopline) {if (!this->stopline_msg) {return false;}}
+    // if (this->use_light) {if (!this->light_msg) {return false;}}
+    // if (this->use_object) {if (!this->object_msg) {return false;}}
+    // if (this->use_stopline) {if (!this->stopline_msg) {return false;}}
+    if (this->use_pose) {if (!this->pose_msg) {return false;}}
     return true;
 }
 
 void PathPlanning::updateUseMessages() {
     if (this->use_sign) {this->update_sign();}
-    if (this->use_object) {this->update_object();}
-    if (this->use_stopline) {this->update_stopline();}
-    if (this->use_light) {this->update_light();}
+    // if (this->use_object) {this->update_object();}
+    // if (this->use_stopline) {this->update_stopline();}
+    // if (this->use_light) {this->update_light();}
     if (this->use_pose) {this->update_pose();}
 }
 
@@ -142,39 +143,39 @@ void PathPlanning::update_sign() {
     }
 }
 
-void PathPlanning::update_light() {
-    this->lights.clear();
-    Light light;
+// void PathPlanning::update_light() {
+//     this->lights.clear();
+//     Light light;
 
-    if(!light_msg->data.empty()) {
-        light.id = light_msg->data;
-        this->lights.push_back(light);
-    }
-}
+//     if(!light_msg->data.empty()) {
+//         light.id = light_msg->data;
+//         this->lights.push_back(light);
+//     }
+// }
 
-void PathPlanning::update_object() {
-    this->objects.clear();
-    Object object;
+// void PathPlanning::update_object() {
+//     this->objects.clear();
+//     Object object;
 
-    for (size_t i = 0; i < object_msg->results.size(); ++i) {
-        // CHECK 3 (Is information enough)
-        object.id = object_msg->results[i].id;
-        object.x = object_msg->results[i].pose.pose.position.x;
-        object.y = object_msg->results[i].pose.pose.position.y;
-        object.isDynamic = static_cast<bool>(static_cast<int>(object_msg->results[i].score + 0.5));
-        this->objects.push_back(object);
-    }
-}
+//     for (size_t i = 0; i < object_msg->results.size(); ++i) {
+//         // CHECK 3 (Is information enough)
+//         object.id = object_msg->results[i].id;
+//         object.x = object_msg->results[i].pose.pose.position.x;
+//         object.y = object_msg->results[i].pose.pose.position.y;
+//         object.isDynamic = static_cast<bool>(static_cast<int>(object_msg->results[i].score + 0.5));
+//         this->objects.push_back(object);
+//     }
+// }
 
-void PathPlanning::update_stopline() {
-    this->stopline.clear();
-    StopLine stopline;
+// void PathPlanning::update_stopline() {
+//     this->stopline.clear();
+//     StopLine stopline;
 
-    if(!stopline_msg->results.empty()) {
-        stopline.distance = stopline_msg->results[0].score;
-        this->stopline.push_back(stopline);
-    }
-}
+//     if(!stopline_msg->results.empty()) {
+//         stopline.distance = stopline_msg->results[0].score;
+//         this->stopline.push_back(stopline);
+//     }
+// }
 
 void PathPlanning::update_pose(){
     this->pose.x = pose_msg->pose.position.x;
