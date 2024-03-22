@@ -51,7 +51,7 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // ROS Publisher
     path_publisher_ = this->create_publisher<nav_msgs::msg::Path>(
         "/planner/path", 10);
-    throttle_publisher_ = this->create_publisher<std_msgs::msg::Float64>(
+    throttle_publisher_ = this->create_publisher<std_msgs::msg::Int8>(
         "/planner/throttle", 10);
 
     publisher_timer_ = this->create_wall_timer(
@@ -125,7 +125,7 @@ void PathPlanning::publish_path() {
 }
 
 void PathPlanning::publish_throttle() {
-    std_msgs::msg::Float64 throttle_msg;
+    std_msgs::msg::Int8 throttle_msg;
     throttle_msg.data = this->throttle;
     this->throttle_publisher_->publish(throttle_msg);
 }

@@ -20,6 +20,7 @@ DecisionMaking::DecisionMaking(VehicleState current_state, float normal_throttle
 
     // Initialization
     this->crosswalksign_ignore = 3.0;
+    this->stopline_mindistance = 10.0;
 }
 
 DecisionMaking::DecisionMaking() {
@@ -106,7 +107,7 @@ void DecisionMaking::CrosswalkNowState() {
         auto time_gap = std::chrono::duration_cast<std::chrono::seconds>(now - this->crosswalknow_stoptime).count();
         if (time_gap >= this->crosswalksign_ignore) {
             this->current_state = VehicleState::CrosswalkAfter;
-            this->stopnow_timecheck = false; 
+            this->crosswalknow_timecheck = false; 
         }
     }
 }

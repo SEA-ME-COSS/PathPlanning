@@ -33,6 +33,7 @@ private:
     std::chrono::steady_clock::time_point crosswalknow_stoptime;
 
     float crosswalksign_ignore;
+    float stopline_mindistance;
 
     void DefaultState();
 

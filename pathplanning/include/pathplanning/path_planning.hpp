@@ -57,6 +57,7 @@ private:
     std::vector<std::vector<int>> path;
     int throttle;
     int state;
+    bool normal_throttle;
 
     double factor_x;
     double factor_y;

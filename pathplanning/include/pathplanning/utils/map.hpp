@@ -9,6 +9,7 @@
 class Map {
 public:
     Map(const std::string& map_path);
+    Map();
     ~Map();
 
     std::vector<std::vector<int>> get_grid_map();
