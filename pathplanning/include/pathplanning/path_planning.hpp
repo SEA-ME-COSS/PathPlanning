@@ -26,6 +26,7 @@
 #include <vector>
 #include <deque>
 #include <utility>
+#include <memory>
 
 class PathPlanning : public rclcpp::Node {
 public:
@@ -33,7 +34,7 @@ public:
 
 private:
     Map map;
-    Planner planner;
+    std::unique_ptr<Planner> planner;
     DecisionMaking decision_making;
 
     std::vector<Sign> signs;

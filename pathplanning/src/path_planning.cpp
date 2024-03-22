@@ -11,10 +11,10 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     Map map = Map(map_file_path);
 
     // Path Planner
-    this->planner = A_Star(map);
+    this->planner = std::make_unique<A_Star>(map);
     // this->planner = BFS(map);
-    planner.plan_with_waypoints(waypoints);
-    this->path = planner.get_waypoints_path();
+    planner->plan_with_waypoints(waypoints);
+    this->path = planner->get_waypoints_path();
 
     // Decision Making
     VehicleState current_state = VehicleState::Driving;
