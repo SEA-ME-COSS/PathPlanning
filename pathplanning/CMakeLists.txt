@@ -25,6 +25,7 @@ find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(example_interfaces REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -54,7 +55,7 @@ add_executable(${PROJECT_NAME}
   src/decision_making/decision_making.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs vision_msgs nav_msgs geometry_msgs nav_msgs tf2 tf2_geometry_msgs)
+ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs vision_msgs nav_msgs geometry_msgs nav_msgs tf2 tf2_geometry_msgs example_interfaces)
 
 install(TARGETS
   ${PROJECT_NAME}

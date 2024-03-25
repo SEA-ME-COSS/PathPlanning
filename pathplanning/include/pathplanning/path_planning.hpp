@@ -14,7 +14,9 @@
 #include "vision_msgs/msg/classification2_d.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include "std_msgs/msg/int8.hpp"
+// #include "std_msgs/msg/int8.hpp"
+// #include "std_msgs/msg/float64.hpp"
+#include "example_interfaces/msg/float64.hpp"
 
 #include "tf2/LinearMath/Quaternion.h"
 #include <tf2/LinearMath/Matrix3x3.h>
@@ -70,7 +72,7 @@ private:
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_subscription_;
 
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_publisher_;
-    rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr throttle_publisher_;
+    rclcpp::Publisher<example_interfaces::msg::Float64>::SharedPtr throttle_publisher_;
     
     rclcpp::TimerBase::SharedPtr publisher_timer_;
 

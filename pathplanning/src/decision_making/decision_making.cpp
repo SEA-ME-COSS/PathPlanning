@@ -31,7 +31,8 @@ DecisionMaking::~DecisionMaking() {
 
 void DecisionMaking::decide() {
     if(signs->empty()) {
-        std::cout << "ROS2 Sign Error" << std::endl;
+        // std::cout << "ROS2 Sign Error" << std::endl;
+        DefaultState();
         return;
     }
     std::string sign_info = (*signs)[0].id;

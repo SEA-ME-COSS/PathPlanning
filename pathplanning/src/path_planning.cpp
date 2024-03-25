@@ -2,12 +2,12 @@
 
 PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // Load Waypoints Info
-    std::string nodes_file_path = "../globalmap/parsinginfo.txt";
-    std::string waypoints_file_path = "../globalmap/waypoints.txt";
+    std::string nodes_file_path = "/home/dongdongo/seame/PathPlanning/pathplanning/include/pathplanning/globalmap/parsinginfo.txt";
+    std::string waypoints_file_path = "/home/dongdongo/seame/PathPlanning/pathplanning/include/pathplanning/globalmap/waypoints.txt";
     std::vector<std::vector<double>> waypoints = load_waypoints(nodes_file_path, waypoints_file_path);
 
     // Make Map Instruction
-    std::string map_file_path = "../globalmap/flipped-track.txt";
+    std::string map_file_path = "/home/dongdongo/seame/PathPlanning/pathplanning/include/pathplanning/globalmap/flipped-track.txt";
     Map map = Map(map_file_path);
 
     // Path Planner
@@ -18,7 +18,7 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
 
     // Decision Making
     VehicleState current_state = VehicleState::Driving;
-    this->normal_throttle = 25.0;
+    this->normal_throttle = 10.0;
 
     decision_making = DecisionMaking(current_state, normal_throttle,
                                 &(this->stopline), &(this->signs), &(this->lights), &(this->objects), &(this->pose));
@@ -50,9 +50,9 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
 
     // ROS Publisher
     path_publisher_ = this->create_publisher<nav_msgs::msg::Path>(
-        "/planner/path", 10);
-    throttle_publisher_ = this->create_publisher<std_msgs::msg::Int8>(
-        "/planner/throttle", 10);
+        "/pathplanner/path", 10);
+    throttle_publisher_ = this->create_publisher<example_interfaces::msg::Float64>(
+        "/pathplanner/throttle", 10);
 
     publisher_timer_ = this->create_wall_timer(
         std::chrono::milliseconds(100),
@@ -115,6 +115,7 @@ void PathPlanning::updateUseMessages() {
 }
 
 void PathPlanning::publish_path() {
+    // std::cout << "path publish" << std::endl;
     nav_msgs::msg::Path path_msg;
     path_msg.header = std_msgs::msg::Header();
     path_msg.header.stamp = rclcpp::Clock().now();
@@ -126,8 +127,9 @@ void PathPlanning::publish_path() {
 }
 
 void PathPlanning::publish_throttle() {
-    std_msgs::msg::Int8 throttle_msg;
-    throttle_msg.data = this->throttle;
+        // std::cout << "trhottle publish" << std::endl;
+    example_interfaces::msg::Float64 throttle_msg;
+    throttle_msg.data = this->throttle*0.01;
     this->throttle_publisher_->publish(throttle_msg);
 }
 
