@@ -10,7 +10,7 @@
 class DecisionMaking {
 public:
     DecisionMaking(VehicleState current_state, float normal_throttle,
-                    std::vector<StopLine> *stopline, std::vector<Sign> *signs, std::vector<Light> *lights, std::vector<Object> *objects, Pose *pose);
+                    std::vector<Sign> *signs, std::vector<Light> *lights, Pose *pose);
     DecisionMaking();
     ~DecisionMaking();
 
@@ -20,9 +20,7 @@ public:
 private:
     std::vector<Sign> *signs;
     std::vector<Light> *lights;
-    std::vector<Object> *objects;
     Pose *pose;
-    std::vector<StopLine> *stopline;
 
     float throttle;
 

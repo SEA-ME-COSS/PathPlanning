@@ -1,13 +1,11 @@
 #include "decision_making/decision_making.hpp"
 
 DecisionMaking::DecisionMaking(VehicleState current_state, float normal_throttle,
-                    std::vector<StopLine> *stopline, std::vector<Sign> *signs, std::vector<Light> *lights, std::vector<Object> *objects, Pose *pose) {
+                    std::vector<Sign> *signs, std::vector<Light> *lights, Pose *pose) {
     // Use Pointer
     this->signs = signs;
     this->lights = lights;
-    this->objects = objects;
     this->pose = pose;
-    this->stopline = stopline;
 
     // Initialize Parameters
     this->throttle = 0.0;
@@ -46,7 +44,7 @@ void DecisionMaking::decide() {
             else { current_state = VehicleState::Driving; }
             break;
         case VehicleState::CrosswalkBefore:
-            if((*stopline)[0].distance > 0 && (*stopline)[0].distance < this->stopline_mindistance) {
+            if((*signs)[0].distance < 20.0) {
                 this->current_state = VehicleState::CrosswalkNow;
             }
             break;

@@ -33,5 +33,6 @@ struct StopLine {
 struct Pose {
     float x;
     float y;
-    float heading;
+    float yaw;
+    float v;
 };

@@ -11,24 +11,22 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     Map map = Map(map_file_path);
 
     // Path Planner
-    this->planner = std::make_unique<A_Star>(map);
-    // this->planner = BFS(map);
+    // this->planner = std::make_unique<A_Star>(map);
+    this->planner = std::make_unique<BFS>(map);
     planner->plan_with_waypoints(waypoints);
     this->path = planner->get_waypoints_path();
 
     // Decision Making
     VehicleState current_state = VehicleState::Driving;
-    this->normal_throttle = 10.0;
+    this->normal_throttle = 1.0;
 
-    decision_making = DecisionMaking(current_state, normal_throttle,
-                                &(this->stopline), &(this->signs), &(this->lights), &(this->objects), &(this->pose));
+    decision_making = DecisionMaking(current_state, this->normal_throttle,
+                                &(this->signs), &(this->lights), &(this->pose));
 
     // Activate ROS2 Message
     this->use_sign = false;
-    // this->use_object = false;
-    // this->use_stopline = false;
-    // this->use_light = false;
-    this->use_pose = false;
+    this->use_light = false;
+    this->use_pose = true;
 
      // Initialization
     this->throttle = 0;
@@ -39,14 +37,10 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // ROS Subscription
     sign_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
         "/perception/sign", 10, std::bind(&PathPlanning::sign_callback, this,  std::placeholders::_1));
-    // object_subscription_ = this->create_subscription<vision_msgs::msg::Detection2D>(
-    //     "/perception/object", 10, std::bind(&PathPlanning::object_callback, this,  std::placeholders::_1));
-    // stopline_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
-    //     "/perception/stopline", 10, std::bind(&PathPlanning::stopline_callback, this,  std::placeholders::_1));
-    // light_subscription_ = this->create_subscription<std_msgs::msg::In8MultiArray>(
-    //     "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
-    pose_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-        "/localization/pose", 10, std::bind(&PathPlanning::pose_callback, this,  std::placeholders::_1));
+    light_subscription_ = this->create_subscription<std_msgs::msg::String>(
+        "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
+    pose_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
+        "/piracer/odom", 10, std::bind(&PathPlanning::pose_callback, this,  std::placeholders::_1));
 
     // ROS Publisher
     path_publisher_ = this->create_publisher<nav_msgs::msg::Path>(
@@ -66,19 +60,11 @@ void PathPlanning::sign_callback(const vision_msgs::msg::Classification2D::Share
     this->sign_msg = sign_msg;
 }
 
-// void PathPlanning::object_callback(const vision_msgs::msg::Detection2D::SharedPtr object_msg) {
-//     this->object_msg = object_msg;
-// }
+void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
+    this->light_msg = light_msg;
+}
 
-// void PathPlanning::stopline_callback(const vision_msgs::msg::Classification2D::SharedPtr stopline_msg) {
-//     this->stopline_msg = stopline_msg;
-// }
-
-// void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
-//     this->light_msg = light_msg;
-// }
-
-void PathPlanning::pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg) {
+void PathPlanning::pose_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg) {
     this->pose_msg = pose_msg;
 }
 
@@ -99,23 +85,18 @@ void PathPlanning::publisher_timer_callback() {
 
 bool PathPlanning::isUseMessageValid() {
     if (this->use_sign) {if (!this->sign_msg) {return false;}}
-    // if (this->use_light) {if (!this->light_msg) {return false;}}
-    // if (this->use_object) {if (!this->object_msg) {return false;}}
-    // if (this->use_stopline) {if (!this->stopline_msg) {return false;}}
+    if (this->use_light) {if (!this->light_msg) {return false;}}
     if (this->use_pose) {if (!this->pose_msg) {return false;}}
     return true;
 }
 
 void PathPlanning::updateUseMessages() {
     if (this->use_sign) {this->update_sign();}
-    // if (this->use_object) {this->update_object();}
-    // if (this->use_stopline) {this->update_stopline();}
-    // if (this->use_light) {this->update_light();}
+    if (this->use_light) {this->update_light();}
     if (this->use_pose) {this->update_pose();}
 }
 
 void PathPlanning::publish_path() {
-    // std::cout << "path publish" << std::endl;
     nav_msgs::msg::Path path_msg;
     path_msg.header = std_msgs::msg::Header();
     path_msg.header.stamp = rclcpp::Clock().now();
@@ -127,9 +108,9 @@ void PathPlanning::publish_path() {
 }
 
 void PathPlanning::publish_throttle() {
-        // std::cout << "trhottle publish" << std::endl;
     example_interfaces::msg::Float64 throttle_msg;
-    throttle_msg.data = this->throttle*0.01;
+    throttle_msg.data = this->throttle;
+    // std::cout << "Throttle : " << throttle_msg.data << std::endl;
     this->throttle_publisher_->publish(throttle_msg);
 }
 
@@ -145,55 +126,34 @@ void PathPlanning::update_sign() {
     }
 }
 
-// void PathPlanning::update_light() {
-//     this->lights.clear();
-//     Light light;
+void PathPlanning::update_light() {
+    this->lights.clear();
+    Light light;
 
-//     if(!light_msg->data.empty()) {
-//         light.id = light_msg->data;
-//         this->lights.push_back(light);
-//     }
-// }
-
-// void PathPlanning::update_object() {
-//     this->objects.clear();
-//     Object object;
-
-//     for (size_t i = 0; i < object_msg->results.size(); ++i) {
-//         // CHECK 3 (Is information enough)
-//         object.id = object_msg->results[i].id;
-//         object.x = object_msg->results[i].pose.pose.position.x;
-//         object.y = object_msg->results[i].pose.pose.position.y;
-//         object.isDynamic = static_cast<bool>(static_cast<int>(object_msg->results[i].score + 0.5));
-//         this->objects.push_back(object);
-//     }
-// }
-
-// void PathPlanning::update_stopline() {
-//     this->stopline.clear();
-//     StopLine stopline;
-
-//     if(!stopline_msg->results.empty()) {
-//         stopline.distance = stopline_msg->results[0].score;
-//         this->stopline.push_back(stopline);
-//     }
-// }
-
-void PathPlanning::update_pose(){
-    this->pose.x = pose_msg->pose.position.x;
-    this->pose.y = pose_msg->pose.position.y;
-    // this->pose.heading = this->quat_to_yaw(pose_msg->pose.orientation);
+    if(!light_msg->data.empty()) {
+        light.id = light_msg->data;
+        this->lights.push_back(light);
+    }
 }
 
-float PathPlanning::quat_to_yaw(const geometry_msgs::msg::Quaternion quat) {
-    tf2::Quaternion tf2_quat;
-    tf2::fromMsg(quat, tf2_quat);
-    double roll;
-    double pitch;
-    double yaw;
-    tf2::Matrix3x3 matrix(tf2_quat);
-    matrix.getRPY(roll, pitch, yaw);
-    return roll;
+void PathPlanning::update_pose() {
+    this->pose.x = pose_msg->pose.pose.position.x * 100;  // [cm]
+    this->pose.y = pose_msg->pose.pose.position.y * 100;  // [cm]
+    
+    tf2::Quaternion q(
+      pose_msg->pose.pose.orientation.x,
+      pose_msg->pose.pose.orientation.y,
+      pose_msg->pose.pose.orientation.z,
+      pose_msg->pose.pose.orientation.w);
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);  // [rad]
+    this->pose.yaw = yaw;
+
+    this->pose.v = sqrt(pow(pose_msg->twist.twist.linear.x, 2)
+                        + pow(pose_msg->twist.twist.linear.y, 2)) * 100;  // [cm/s]
+
+    std::cout << "X pose : " << this->pose.x << " Y pose : " << this->pose.y << " Yaw : " << this->pose.yaw  << " Speed : " << this->pose.v << std::endl;
 }
 
 void PathPlanning::addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose) {
