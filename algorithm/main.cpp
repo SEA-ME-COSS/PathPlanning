@@ -2,8 +2,8 @@
 #include <utils/loader.h>
 #include <visual/matplotlibcpp.h>
 
-#include <planner/bfs.h>
-#include <planner/a_star.h>
+#include <bfs.h>
+#include <a_star.h>
 
 #include <iostream>
 #include <cmath>

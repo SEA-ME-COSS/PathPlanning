@@ -1,0 +1,3 @@
+[submodule "algorithm/algoirthm/lib/hybird-a-star"]
+	path = algorithm/algoirthm/lib/hybird-a-star
+	url = https://github.com/bmegli/hybrid-a-star.git

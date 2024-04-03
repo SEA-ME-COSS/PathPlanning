@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(PathPlanning VERSION 1.0 LANGUAGES CXX)
+project(pathplanning VERSION 1.0 LANGUAGES CXX)
 
 # Set the C++ standard to C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -24,9 +24,8 @@ include_directories(
     ${Python3_INCLUDE_DIRS}
     ${Python3_NumPy_INCLUDE_DIRS}  # This may not be set if PythonLibs was used
     ${CMAKE_SOURCE_DIR}
-    planner
-    utils
-    visual
+    ${CMAKE_SOURCE_DIR}/lib
+    ${CMAKE_SOURCE_DIR}/lib/basic_pathplanning
 )
 
 # Add executable with all relevant source files
