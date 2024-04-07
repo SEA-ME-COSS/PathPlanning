@@ -12,7 +12,7 @@ class Planner {
 public:
     Planner(Map* map, double vehicle_width, double vehicle_length,
             float change_penalty, float non_straight_penalty, float reverse_penalty, float minimum_turning_radius, int theta_resolution,
-            int max_iterations, float tolerance, int it_on_approach, int num_it);
+            int max_iterations, float tolerance, int it_on_approach);
     ~Planner();
 
     void plan_route(std::array<int, 3> startpos, std::vector<std::array<int, 3>> waypoints);
@@ -27,7 +27,6 @@ private:
 	int max_iterations;
 	float tolerance;
 	int it_on_approach;
-	int num_it;
 
     std::vector<std::vector<double>> waypoints_route;
     int target_node;

@@ -41,11 +41,10 @@ int main() {
 	int max_iterations = 10000;
 	float tolerance = 10.0;
 	int it_on_approach = 10;
-	int num_it = 0;
     
     Planner planner = Planner(map, vehicle_width, vehicle_length,
                             change_penalty, non_straight_penalty, reverse_penalty, minimum_turning_radius, theta_resolution,
-                            max_iterations, tolerance, it_on_approach, num_it);
+                            max_iterations, tolerance, it_on_approach);
 
     std::array<int, 3> startpos = {35, 65, 0};
 
