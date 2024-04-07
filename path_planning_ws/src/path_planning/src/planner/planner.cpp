@@ -37,6 +37,10 @@ void Planner::plan_with_waypoints(std::vector<std::vector<double>> waypoints) {
 }
 
 std::vector<std::vector<double>> Planner::get_waypoints_path() {
+    //     std::cout << "Waypoints route:" << std::endl;
+    // for (const auto& waypoint : waypoints_route) {
+    //     std::cout << "x: " << waypoint[0] << ", y: " << waypoint[1] << ", theta: " << waypoint[2] << std::endl;
+    // }
     return waypoints_route;
 }
 

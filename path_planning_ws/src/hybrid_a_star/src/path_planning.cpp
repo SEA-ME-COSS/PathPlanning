@@ -1,38 +1,47 @@
 #include "path_planning.hpp"
 
 PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
-    // Load Waypoints Info
-    std::string nodes_file_path = "src/path_planning/include/path_planning/globalmap/parsinginfo.txt";
-    std::string waypoints_file_path = "src/path_planning/include/path_planning/globalmap/waypoints.txt";
-    std::vector<std::vector<double>> waypoints = load_waypoints(nodes_file_path, waypoints_file_path);
+    this->pose.x = 55.0;
+    this->pose.y = 65.0;
+    this->pose.yaw = 0.0;
+    this->pose.v = 0.0;
 
-    // Make Map Instruction
-    std::string map_file_path = "src/path_planning/include/path_planning/globalmap/flipped-track.txt";
-    Map map = Map(map_file_path);
+    // Load Graph and Waypoints
+    std::string nodes_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/parsinginfo.txt";
+    std::string points_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/waypoints.txt";
+    std::string points_set_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/waypoints-set.txt";
+
+    std::vector<std::array<int, 3>> waypoints = load_waypoints(nodes_file_path, points_file_path);
+    std::vector<std::array<int, 3>> waypoints_set = load_waypoints(nodes_file_path, points_set_file_path);
+
+    // Load and Configure Map
+    std::string mapdata_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/flipped-track.txt";
+    double resolution = 0.77;
+    this->map = new Map(mapdata_file_path, resolution, waypoints_set, &(this->pose));
 
     // Path Planner
-    // this->planner = std::make_unique<A_Star>(map);
-    this->planner = std::make_unique<BFS>(map);
-    planner->plan_with_waypoints(waypoints);
-    this->path = planner->get_waypoints_path();
+    this->planner = Planner(this->map, resolution, waypoints, &(this->pose));
+   
+    this->planner.plan_route();
 
-    // Decision Making
+    this->path = planner.get_route();
+
+    // Select Using Messages
+    // CHECK 5 vector initialization is needed
+    this->use_sign = false;
+    this->use_light = false;
+    this->use_pose = false;
+    
+    // Decision Making Initialization
     VehicleState current_state = VehicleState::Driving;
     this->normal_throttle = 1.0;
 
     decision_making = DecisionMaking(current_state, this->normal_throttle,
                                 &(this->signs), &(this->lights), &(this->pose));
 
-    // Activate ROS2 Message
-    this->use_sign = false;
-    this->use_light = false;
-    this->use_pose = false;
-
-     // Initialization
+    // Initialization
     this->throttle = 0;
     this->state = 0;
-    this->factor_x = 0.768;
-    this->factor_y = 0.776;
 
     // ROS Subscription
     sign_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
@@ -69,18 +78,24 @@ void PathPlanning::pose_callback(const nav_msgs::msg::Odometry::SharedPtr pose_m
 }
 
 void PathPlanning::publisher_timer_callback() {
-   // Use Message Validation
+    // Use Message Validation
     if (!this->isUseMessageValid()) {return;}
 
     // Update Using Messages to Decision Making
     this->updateUseMessages();
+    
     // Decision Making with Using Messages
     this->decision_making.decide();
 
+    this->planner.plan_route();
+    this->path = planner.get_route();
+
     this->throttle = static_cast<int>(this->decision_making.getThrottle());
+    this->state = this->decision_making.getState();
     
     this->publish_path();
     this->publish_throttle();
+    // this->publish_state();
 }
 
 bool PathPlanning::isUseMessageValid() {
@@ -104,6 +119,7 @@ void PathPlanning::publish_path() {
     for (size_t i = 0; i < this->path.size(); ++i) {
         this->addPose(path_msg, this->path[i]);
     }
+
     this->path_publisher_->publish(path_msg);
 }
 
@@ -113,6 +129,12 @@ void PathPlanning::publish_throttle() {
     // std::cout << "Throttle : " << throttle_msg.data << std::endl;
     this->throttle_publisher_->publish(throttle_msg);
 }
+
+// void PathPlanning::publish_state() {
+//     std_msgs::msg::Int8 state_msg;
+//     state_msg.data = this->state;
+//     this->state_publisher_->publish(state_msg);
+// }
 
 void PathPlanning::update_sign() {
     this->signs.clear();
@@ -126,20 +148,10 @@ void PathPlanning::update_sign() {
     }
 }
 
-void PathPlanning::update_light() {
-    this->lights.clear();
-    Light light;
+void PathPlanning::update_pose(){
+    this->pose.x = map->worldToMap(pose_msg->pose.pose.position.x * 100);   // [cm]
+    this->pose.y = map->worldToMap(pose_msg->pose.pose.position.y * 100);   // [cm]
 
-    if(!light_msg->data.empty()) {
-        light.id = light_msg->data;
-        this->lights.push_back(light);
-    }
-}
-
-void PathPlanning::update_pose() {
-    this->pose.x = pose_msg->pose.pose.position.x * 100;  // [cm]
-    this->pose.y = pose_msg->pose.pose.position.y * 100;  // [cm]
-    
     tf2::Quaternion q(
       pose_msg->pose.pose.orientation.x,
       pose_msg->pose.pose.orientation.y,
@@ -156,11 +168,21 @@ void PathPlanning::update_pose() {
     std::cout << "X pose : " << this->pose.x << " Y pose : " << this->pose.y << " Yaw : " << this->pose.yaw  << " Speed : " << this->pose.v << std::endl;
 }
 
+void PathPlanning::update_light() {
+    this->lights.clear();
+    Light light;
+
+    if(!light_msg->data.empty()) {
+        light.id = light_msg->data;
+        this->lights.push_back(light);
+    }
+}
+
 void PathPlanning::addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose) {
     geometry_msgs::msg::PoseStamped pose_stamped;
 
-    pose_stamped.pose.position.x = pose[0]*this->factor_x;
-    pose_stamped.pose.position.y = pose[1]*this->factor_y;
+    pose_stamped.pose.position.x = map->mapToWorld(pose[0]);
+    pose_stamped.pose.position.y = map->mapToWorld(pose[1]);
     
     tf2::Quaternion quat;
     quat.setRPY(0, 0, pose[2]);
@@ -174,3 +196,4 @@ void PathPlanning::addPose(nav_msgs::msg::Path& path_msg, std::vector<double> po
 
     path_msg.poses.push_back(pose_stamped);
 }
+
