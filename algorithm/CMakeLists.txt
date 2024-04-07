@@ -4,36 +4,53 @@ project(pathplanning VERSION 1.0 LANGUAGES CXX)
 
 # Set the C++ standard to C++20
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 # set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
 
+option(BASIC_PLANNER "Build with the basic planner" OFF)
 
 # Find Python 3 and optionally NumPy
-find_package(Python3 COMPONENTS Interpreter Development NumPy QUIET)
-if(NOT Python3_FOUND)
-    # Fallback to older PythonLibs find module if Python3 components are not found
-    find_package(PythonLibs REQUIRED)
-    set(Python3_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
-    set(Python3_LIBRARIES ${PYTHON_LIBRARIES})
-    # Note: This does not handle NumPy includes for the fallback case
+find_package(PythonLibs REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+# 조건에 따라 다른 메인 함수와 소스 파일을 선택
+if(BASIC_PLANNER)
+    message(STATUS "Building with Basic Planner")
+
+    include_directories(
+        ${PYTHON_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/lib
+        ${CMAKE_SOURCE_DIR}/lib/basic_pathplanning
+    )
+
+    add_executable(${PROJECT_NAME} "src/basic_planner/main.cpp")
+else()
+    message(STATUS "Building with Hybrid A* Planner")
+
+    include_directories(
+        ${PYTHON_INCLUDE_DIRS}
+        lib
+        lib/hybrid_a_star
+        lib/hybrid_a_star/hybrid-a-star
+    )
+
+    FILE(GLOB NavObjects lib/hybrid_a_star/hybrid-a-star/*.cpp)
+    FILE(GLOB HybridAStar src/hybrid_a_star/*/*.cpp)
+
+    add_executable(${PROJECT_NAME} ${NavObjects} ${HybridAStar} "src/hybrid_a_star/main.cpp")
 endif()
-
-# Include directories for header files
-include_directories(
-    ${Python3_INCLUDE_DIRS}
-    ${Python3_NumPy_INCLUDE_DIRS}  # This may not be set if PythonLibs was used
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/lib
-    ${CMAKE_SOURCE_DIR}/lib/basic_pathplanning
-)
-
-# Add executable with all relevant source files
-add_executable(${PROJECT_NAME} 
-    main.cpp
-)
 
 # Link with Python libraries
 target_link_libraries(${PROJECT_NAME}
-    ${Python3_LIBRARIES}
+    ompl
+    Eigen3::Eigen
+    ${PYTHON_LIBRARIES}
 )
+
+
+# 공통 소스 파일
+# file(GLOB COMMON_SOURCES "src/common/*.cpp")
+
