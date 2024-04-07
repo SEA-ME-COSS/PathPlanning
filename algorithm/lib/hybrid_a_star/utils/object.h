@@ -1,3 +1,4 @@
+#pragma once
 struct ObstacleInfo {
     std::vector<double> center;
     int radius;

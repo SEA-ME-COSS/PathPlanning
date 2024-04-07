@@ -2,6 +2,7 @@
 
 #include "map/hybrid_a_star_map.hpp"
 #include "hybrid-a-star/a_star.hpp"
+#include "hybrid-a-star/smoother.hpp"
 #include "utils/point.h"
 
 #include <iostream>
@@ -30,4 +31,8 @@ private:
 
     std::vector<std::vector<double>> waypoints_route;
     int target_node;
+
+    nav2_smac_planner::Smoother<Map>* smoother;
+    nav2_smac_planner::OptimizerParams optimizer_params;
+    nav2_smac_planner::SmootherParams smoother_params;
 };

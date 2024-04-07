@@ -1,21 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
-
 project(pathplanning VERSION 1.0 LANGUAGES CXX)
 
 # Set the C++ standard to C++20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-# set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
 
 option(BASIC_PLANNER "Build with the basic planner" OFF)
 
-# Find Python 3 and optionally NumPy
+# Find required packages
 find_package(PythonLibs REQUIRED)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Ceres REQUIRED)
 
-# 조건에 따라 다른 메인 함수와 소스 파일을 선택
 if(BASIC_PLANNER)
     message(STATUS "Building with Basic Planner")
 
@@ -27,11 +23,17 @@ if(BASIC_PLANNER)
     )
 
     add_executable(${PROJECT_NAME} "src/basic_planner/main.cpp")
+
+    target_link_libraries(${PROJECT_NAME}
+        ${PYTHON_LIBRARIES}
+    )  
 else()
     message(STATUS "Building with Hybrid A* Planner")
 
     include_directories(
         ${PYTHON_INCLUDE_DIRS}
+        ${EIGEN3_INCLUDE_DIRS}
+        ${CERES_INCLUDE_DIRS}
         lib
         lib/hybrid_a_star
         lib/hybrid_a_star/hybrid-a-star
@@ -41,16 +43,11 @@ else()
     FILE(GLOB HybridAStar src/hybrid_a_star/*/*.cpp)
 
     add_executable(${PROJECT_NAME} ${NavObjects} ${HybridAStar} "src/hybrid_a_star/main.cpp")
+
+    target_link_libraries(${PROJECT_NAME}
+        ${CERES_LIBRARIES}
+        ompl
+        Eigen3::Eigen
+        ${PYTHON_LIBRARIES}
+    )
 endif()
-
-# Link with Python libraries
-target_link_libraries(${PROJECT_NAME}
-    ompl
-    Eigen3::Eigen
-    ${PYTHON_LIBRARIES}
-)
-
-
-# 공통 소스 파일
-# file(GLOB COMMON_SOURCES "src/common/*.cpp")
-

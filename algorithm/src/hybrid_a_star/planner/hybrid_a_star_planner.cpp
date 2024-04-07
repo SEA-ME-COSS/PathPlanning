@@ -22,6 +22,16 @@ Planner::Planner(Map* map, double vehicle_width, double vehicle_length,
     this->it_on_approach = it_on_approach;
 
     this->target_node = 0;
+
+    this->smoother = new nav2_smac_planner::Smoother<Map>();
+    this->optimizer_params.debug = false;
+    this->smoother->initialize(this->optimizer_params);
+    this->smoother_params.max_curvature = 1.0f / minimum_turning_radius;
+	this->smoother_params.curvature_weight = 30.0;
+	this->smoother_params.distance_weight = 0.0;
+	this->smoother_params.smooth_weight = 100.0;
+	this->smoother_params.costmap_weight = 0.025;
+	this->smoother_params.max_time = 0.1;
 }
 
 Planner::~Planner() {
@@ -57,10 +67,25 @@ void Planner::plan_route(std::array<int, 3> startpos, std::vector<std::array<int
     bool found = a_star.createPath(plan, num_it, tolerance);
     if (!found) {std::cout<<"NO WAY"<<std::endl;}
 
-    this->waypoints_route.clear();
-    for (size_t i = plan.size()-1; 0 < i; --i) {
-        waypoints_route.push_back({plan[i].x, plan[i].y, plan[i].theta * M_PI / 180 * theta_resolution});
+    std::vector<Eigen::Vector2d> smooth_path;
+    for (const auto& node : plan) {
+        smooth_path.push_back(Eigen::Vector2d(node.x, node.y));
     }
+
+    if (!smoother->smooth(smooth_path, map, smoother_params)) {
+        std::cout << "Smoothing Fail" << std::endl;
+    }
+
+    this->waypoints_route.clear();
+    for (size_t i = smooth_path.size()-1; 0<i; --i) {
+        waypoints_route.push_back({smooth_path[i].x(), smooth_path[i].y(), plan[i].theta * M_PI / 180 * theta_resolution});
+    }
+
+    // for (size_t i = plan.size()-1; 0 < i; --i) {
+    //     waypoints_route.push_back({plan[i].x, plan[i].y, plan[i].theta * M_PI / 180 * theta_resolution});
+    // }
+
+
 
     for(int k = this->target_node; (k + 1) < static_cast<int>(waypoints.size()); ++k) {
         startPose = waypoints[k];
@@ -83,9 +108,22 @@ void Planner::plan_route(std::array<int, 3> startpos, std::vector<std::array<int
         bool found = a_star.createPath(plan, num_it, tolerance);
         if (!found) {std::cout<<"NO WAY"<<std::endl;}
 
-        for (size_t i = plan.size()-1; 0 < i; --i) {
-            waypoints_route.push_back({plan[i].x, plan[i].y, plan[i].theta * M_PI / 180 * theta_resolution});
+        std::vector<Eigen::Vector2d> smooth_path;
+        for (const auto& node : plan) {
+            smooth_path.push_back(Eigen::Vector2d(node.x, node.y));
         }
+
+        if (!smoother->smooth(smooth_path, map, smoother_params)) {
+            std::cout << "Smoothing Fail" << std::endl;
+        }
+
+        for (size_t i = smooth_path.size()-1; 0<i; --i) {
+            waypoints_route.push_back({smooth_path[i].x(), smooth_path[i].y(), plan[i].theta * M_PI / 180 * theta_resolution});
+        }
+
+        // for (size_t i = plan.size()-1; 0 < i; --i) {
+        //     waypoints_route.push_back({plan[i].x, plan[i].y, plan[i].theta * M_PI / 180 * theta_resolution});
+        // }
     }
 }
 
