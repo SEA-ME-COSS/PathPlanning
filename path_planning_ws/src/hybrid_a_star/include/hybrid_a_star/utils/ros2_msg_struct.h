@@ -16,5 +16,5 @@ struct Sign {
 
 struct Light {
     std::string id;
-    bool isOn;
+    float distance;
 };

@@ -21,14 +21,10 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
 
     // Path Planner
     this->planner = Planner(this->map, resolution, waypoints, &(this->pose));
-   
-    this->planner.plan_route();
-
-    this->path = planner.get_route();
 
     // Select Using Messages
     // CHECK 5 vector initialization is needed
-    this->use_sign = false;
+    this->use_sign = true;
     this->use_light = false;
     this->use_pose = false;
     
@@ -58,7 +54,7 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
         "/pathplanner/throttle", 10);
 
     publisher_timer_ = this->create_wall_timer(
-        std::chrono::milliseconds(100),
+        std::chrono::milliseconds(1000),
         std::bind(&PathPlanning::publisher_timer_callback, this)
     );
 
@@ -99,7 +95,7 @@ void PathPlanning::publisher_timer_callback() {
 }
 
 bool PathPlanning::isUseMessageValid() {
-    if (this->use_sign) {if (!this->sign_msg) {return false;}}
+    if (this->use_sign) {if (!this->sign_msg) { std::cout << "Sign Message Error" << std::endl; return false;}}
     if (this->use_light) {if (!this->light_msg) {return false;}}
     if (this->use_pose) {if (!this->pose_msg) {return false;}}
     return true;
