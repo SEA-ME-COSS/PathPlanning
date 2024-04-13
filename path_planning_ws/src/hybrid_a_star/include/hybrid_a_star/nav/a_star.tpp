@@ -518,6 +518,9 @@ typename AStarAlgorithm<CostmapT, CollisionCheckerT>::NodePtr AStarAlgorithm<Cos
       static_cast<int>(closest_distance / _search_info.analytic_expansion_ratio),
       static_cast<int>(std::ceil(_search_info.analytic_expansion_ratio))
     );
+
+    desired_iterations = 0;
+    
     // If we are closer now, we should update the target number of iterations to go
     analytic_iterations =
       std::min(analytic_iterations, desired_iterations);

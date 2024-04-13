@@ -9,7 +9,7 @@
 
 class Map {
 public:
-    Map(const std::string& map_path, double resolution, std::vector<std::array<int, 3>> waypoints_set, Pose *pose);
+    Map(const std::string& map_path, double resolution, std::vector<std::array<int, 3>> waypoints_set);
 	Map();
     ~Map();
 
@@ -27,22 +27,21 @@ public:
 	unsigned int getSizeInCellsX();
 	unsigned int getSizeInCellsY();
 
-	static constexpr double DRIVEWAY = 0;
-	static constexpr double SOLIDLINE = 255;
-	static constexpr double PARKINGLOT = 0;
-	static constexpr double DOTTEDLINE = 253;
-	static constexpr double STOPLINE = 0;
-	static constexpr double CROSSWALK = 0;
-	static constexpr double ROUNDABOUT = 255;
-	static constexpr double EXTRA = 254;
-	static constexpr double CROSSWALKEXTRA = 252;
-	static constexpr double OBSTACLE = 255;
-
 	static constexpr double UNKNOWN = 255;
 	static constexpr double OCCUPIED = 254;
 	static constexpr double INSCRIBED = 253;
 	static constexpr double FREE = 0;
 
+	static constexpr double DRIVEWAY = 0;
+	static constexpr double SOLIDLINE = 255;
+	static constexpr double PARKINGLOT = 0;
+	static constexpr double DOTTEDLINE = 254;
+	static constexpr double PASSAVAILABLE = 253;
+	static constexpr double STOPLINE = 0;
+	static constexpr double CROSSWALK = 0;
+	static constexpr double ROUNDABOUT = 255;
+	static constexpr double OBSTACLE = 255;
+	static constexpr double ISOCCUPIED = 200;
 
 private:
 	double resolution;
@@ -50,8 +49,6 @@ private:
 	double origin_y;
 	double size_x;
 	double size_y;
-
-	Pose *pose;
 
 	std::vector<std::array<int, 3>> waypoints_set;
 

@@ -5,6 +5,7 @@
 #include "nav/smoother.hpp"
 #include "utils/ros2_msg_struct.h"
 #include "utils/hybridastar_struct.h"
+#include "utils/car_struct.h"
 
 #include <iostream>
 #include <array>
@@ -12,7 +13,7 @@
 
 class Planner {
 public:
-    Planner(Map* map, double resolution, std::vector<std::array<int, 3>> waypoints, Pose *pose);
+    Planner(Map* map, double resolution, std::vector<std::array<int, 3>> waypoints);
     Planner();
     ~Planner();
 
@@ -22,6 +23,7 @@ public:
 private:
     Map* map;
     Pose *pose;
+    Car car;
 
     double resolution;
 
@@ -38,11 +40,8 @@ private:
     nav2_smac_planner::OptimizerParams optimizer_params;
     nav2_smac_planner::SmootherParams smoother_params;
 
-    int target_node;
-    float node_mindistance;
-
     std::vector<std::vector<double>> waypoints_route;
     std::vector<std::array<int, 3>> waypoints;
 
-    bool isPosePass();
+    double pi_2_degree(double angle);
 };

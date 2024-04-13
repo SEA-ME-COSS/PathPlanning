@@ -1,11 +1,6 @@
 #include "path_planning.hpp"
 
 PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
-    this->pose.x = 55.0;
-    this->pose.y = 65.0;
-    this->pose.yaw = 0.0;
-    this->pose.v = 0.0;
-
     // Load Graph and Waypoints
     std::string nodes_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/parsinginfo.txt";
     std::string points_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/waypoints.txt";
@@ -17,14 +12,17 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // Load and Configure Map
     std::string mapdata_file_path = "src/hybrid_a_star/include/hybrid_a_star/globalmap/flipped-track.txt";
     double resolution = 0.77;
-    this->map = new Map(mapdata_file_path, resolution, waypoints_set, &(this->pose));
+    this->map = new Map(mapdata_file_path, resolution, waypoints_set);
 
     // Path Planner
-    this->planner = Planner(this->map, resolution, waypoints, &(this->pose));
+    this->planner = Planner(this->map, resolution, waypoints);
+
+    this->planner.plan_route();
+    this->path = this->planner.get_route();
 
     // Select Using Messages
     // CHECK 5 vector initialization is needed
-    this->use_sign = true;
+    this->use_sign = false;
     this->use_light = false;
     this->use_pose = false;
     
@@ -82,9 +80,6 @@ void PathPlanning::publisher_timer_callback() {
     
     // Decision Making with Using Messages
     this->decision_making.decide();
-
-    this->planner.plan_route();
-    this->path = planner.get_route();
 
     this->throttle = static_cast<int>(this->decision_making.getThrottle());
     this->state = this->decision_making.getState();

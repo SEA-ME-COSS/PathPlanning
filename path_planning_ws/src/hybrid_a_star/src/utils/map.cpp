@@ -1,25 +1,18 @@
 #include "utils/map.hpp"
 
-Map::Map(const std::string& map_path, double resolution, std::vector<std::array<int, 3>> waypoints_set, Pose *pose) {
-    std::cout << "test222" << std::endl;
-    
+Map::Map(const std::string& map_path, double resolution, std::vector<std::array<int, 3>> waypoints_set) { 
     std::vector<std::vector<unsigned int>> map_data = load_map_data(map_path);
 	
 	this->origin_x = 0.0;
 	this->origin_y = 0.0;
     this->size_x = static_cast<double>(map_data[0].size());
     this->size_y = static_cast<double>(map_data.size());
+
     this->resolution = resolution;
 
     this->waypoints_set = waypoints_set;
 
-    this->pose = pose;
-
-    std::cout << "test222" << std::endl;
-
     this->set_cost_map(&map_data);
-
-    std::cout << "test233" << std::endl;
 }
 
 Map::Map() {
@@ -29,7 +22,7 @@ Map::~Map() {
 }
 
 void Map::set_cost_map(std::vector<std::vector<unsigned int>> *map_data) {
-    cost_map.resize(size_y, std::vector<unsigned int>(size_x, 0));
+	cost_map.resize(size_y, std::vector<unsigned int>(size_x, 0));
     std::cout << "Map Size: " << cost_map[0].size() << " x " << cost_map.size() << std::endl;
 
     for (int x = 0; x < size_x; ++x) {
@@ -63,75 +56,6 @@ void Map::set_cost_map(std::vector<std::vector<unsigned int>> *map_data) {
             }
         }
     }
-
-	int thickness = 7;
-	for (int x = 0; x < size_x; ++x) {
-        for (int y = 0; y < size_y; ++y) {
-			int index = static_cast<int>((*map_data)[y][x]);
-            switch (index) {
-                case 1:
-                    cost_map[y][x] = SOLIDLINE;
-                    for (int dx = -thickness; dx < thickness; ++dx) {
-					    for (int dy = -thickness; dy < thickness; ++dy) {
-						    int nx = x + dx; 
-						    int ny = y + dy;
-                            if(nx >= 0 && ny >= 0) { 
-						    if (isValid(nx, ny) && cost_map[ny][nx] < 200) {cost_map[ny][nx] = SOLIDLINE;}
-					    }}
-				    }
-                    break;
-                case 3:
-                    cost_map[y][x] = DOTTEDLINE;
-				    for (int dx = -thickness; dx < thickness; ++dx) {
-					    for (int dy = -thickness; dy < thickness; ++dy) {
-						    int nx = x + dx; 
-						    int ny = y + dy; 
-                            if(nx >= 0 && ny >= 0) {
-							if (isValid(nx, ny) && cost_map[ny][nx] < 200) {cost_map[ny][nx] = DOTTEDLINE;}
-                                }}
-                        
-					    }
-                    break;
-                case 6:
-                    cost_map[y][x] = ROUNDABOUT;
-                    for (int dx = -thickness; dx < thickness; ++dx) {
-					    for (int dy = -thickness; dy < thickness; ++dy) {
-						    int nx = x + dx; 
-						    int ny = y + dy; 
-                            if(nx >= 0 && ny >= 0) {
-						    if(isValid(nx, ny) && cost_map[ny][nx] < 200) {cost_map[ny][nx] = ROUNDABOUT;}
-					    }}
-				    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    int extra = 5;
-	for (int x = 0; x < size_x; ++x) {
-        for (int y = 0; y < size_y; ++y) {
-			if (cost_map[y][x] == SOLIDLINE) {
-				for (int dx = -extra; dx < extra; ++dx) {
-					for (int dy = -extra; dy < extra; ++dy) {
-						int nx = x + dx; 
-						int ny = y + dy; 
-						if (isValid(nx, ny) && cost_map[ny][nx] < 200) {cost_map[ny][nx] = EXTRA;}
-					}
-				}
-			}
-			// else if (cost_map[y][x] == DOTTEDLINE) {
-			// 	for (int dx = -extra; dx < extra; ++dx) {
-			// 		for (int dy = -extra; dy < extra; ++dy) {
-			// 			int nx = x + dx; 
-			// 			int ny = y + dy; 
-			// 			if (isValid(nx, ny) && cost_map[ny][nx] < 200) {cost_map[ny][nx] = DOTTEDLINEEXTRA;}
-			// 		}
-			// 	}
-			// }
-        }
-    }
 }
 
 bool Map::worldToMap(double wx, double wy, unsigned int &mx, unsigned int &my) {
@@ -158,7 +82,7 @@ double Map::mapToWorld(double coordinate) {
 }
 
 double Map::getCost(int mx, int my) {
-	if (!isValid(mx, my)) {return EXTRA;}
+	if (!isValid(mx, my)) {return UNKNOWN;}
 	return cost_map[my][mx];
 }
 
