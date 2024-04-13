@@ -79,20 +79,20 @@ void Planner::plan_route() {
         }
     }
 
-    // std::vector<Eigen::Vector2d> smooth_path;
-    // for (const auto& node : waypoints_route) {
-    //     smooth_path.push_back(Eigen::Vector2d(node[0], node[1]));
-    // }
+    std::vector<Eigen::Vector2d> smooth_path;
+    for (const auto& node : waypoints_route) {
+        smooth_path.push_back(Eigen::Vector2d(node[0], node[1]));
+    }
 
-    // if (!smoother->smooth(smooth_path, map, smoother_params)) {
-    //     std::cout << "Smoothing Fail" << std::endl;
-    // }
-    // else {
-    //     for (size_t i = 0; i < smooth_path.size(); ++i) {
-    //         waypoints_route[i][0] = smooth_path[i].x();
-    //         waypoints_route[i][1] = smooth_path[i].y();
-    //     }
-    // }
+    if (!smoother->smooth(smooth_path, map, smoother_params)) {
+        std::cout << "Smoothing Fail" << std::endl;
+    }
+    else {
+        for (size_t i = 0; i < smooth_path.size(); ++i) {
+            waypoints_route[i][0] = smooth_path[i].x();
+            waypoints_route[i][1] = smooth_path[i].y();
+        }
+    }
 }
 
 std::vector<std::vector<double>> Planner::get_route() {

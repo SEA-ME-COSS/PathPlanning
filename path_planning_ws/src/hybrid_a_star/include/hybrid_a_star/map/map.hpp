@@ -1,7 +1,8 @@
 #pragma once
 
 #include "utils/loader.hpp"
-#include "utils/ros2_msg_struct.h"
+
+#include "data_structure/ros2_msg_struct.h"
 
 #include <vector>
 #include <iostream>

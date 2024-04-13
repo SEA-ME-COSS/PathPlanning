@@ -50,6 +50,8 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
         "/pathplanner/path", 10);
     throttle_publisher_ = this->create_publisher<example_interfaces::msg::Float64>(
         "/pathplanner/throttle", 10);
+    state_publisher_ = this->create_publisher<std_msgs::msg::Int8>(
+        "/planner/state", 10);
 
     publisher_timer_ = this->create_wall_timer(
         std::chrono::milliseconds(1000),
@@ -86,7 +88,7 @@ void PathPlanning::publisher_timer_callback() {
     
     this->publish_path();
     this->publish_throttle();
-    // this->publish_state();
+    this->publish_state();
 }
 
 bool PathPlanning::isUseMessageValid() {
@@ -121,11 +123,11 @@ void PathPlanning::publish_throttle() {
     this->throttle_publisher_->publish(throttle_msg);
 }
 
-// void PathPlanning::publish_state() {
-//     std_msgs::msg::Int8 state_msg;
-//     state_msg.data = this->state;
-//     this->state_publisher_->publish(state_msg);
-// }
+void PathPlanning::publish_state() {
+    std_msgs::msg::Int8 state_msg;
+    state_msg.data = this->state;
+    this->state_publisher_->publish(state_msg);
+}
 
 void PathPlanning::update_sign() {
     this->signs.clear();

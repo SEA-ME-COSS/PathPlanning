@@ -1,28 +1,26 @@
 #pragma once
 
 #include "utils/loader.hpp"
-#include "utils/map.hpp"
+#include "map/map.hpp"
 #include "planner/planner.hpp"
 #include "decision_making/decision_making.hpp"
 
-// #include "utils/hybridastar_struct.h"
-// #include "utils/decision_making_struct.h"
-#include "utils/ros2_msg_struct.h"
+#include "data_structure/ros2_msg_struct.h"
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "vision_msgs/msg/detection2_d_array.hpp"
 #include "vision_msgs/msg/classification2_d.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "example_interfaces/msg/float64.hpp"
+#include "std_msgs/msg/int8.hpp"
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Matrix3x3.h"
 #include "tf2/convert.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "std_msgs/msg/string.hpp"
 
 #include <string>
 #include <cmath>
@@ -65,7 +63,7 @@ private:
 
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_publisher_;
     rclcpp::Publisher<example_interfaces::msg::Float64>::SharedPtr throttle_publisher_;
-    // rclcpp::Publisher<example_interfaces::msg::Float64>::SharedPtr state_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr state_publisher_;
 
     rclcpp::TimerBase::SharedPtr publisher_timer_;
 
@@ -79,7 +77,7 @@ private:
     void updateUseMessages();
     void publish_path();
     void publish_throttle();
-    // void publish_state();
+    void publish_state();
 
     void update_sign();
     void update_light();

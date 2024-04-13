@@ -1,11 +1,12 @@
 #pragma once
 
-#include "utils/map.hpp"
-#include "nav/a_star.hpp"
-#include "nav/smoother.hpp"
-#include "utils/ros2_msg_struct.h"
-#include "utils/hybridastar_struct.h"
-#include "utils/car_struct.h"
+#include "map/map.hpp"
+#include "hybridastar/a_star.hpp"
+#include "hybridastar/smoother.hpp"
+
+#include "data_structure/ros2_msg_struct.h"
+#include "data_structure/hybridastar_struct.h"
+#include "data_structure/car_struct.h"
 
 #include <iostream>
 #include <array>
@@ -22,7 +23,6 @@ public:
 
 private:
     Map* map;
-    Pose *pose;
     Car car;
 
     double resolution;

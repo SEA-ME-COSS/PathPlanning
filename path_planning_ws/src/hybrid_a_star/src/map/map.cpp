@@ -1,4 +1,4 @@
-#include "utils/map.hpp"
+#include "map/map.hpp"
 
 Map::Map(const std::string& map_path, double resolution, std::vector<std::array<int, 3>> waypoints_set) { 
     std::vector<std::vector<unsigned int>> map_data = load_map_data(map_path);

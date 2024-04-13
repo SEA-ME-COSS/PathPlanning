@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utils/ros2_msg_struct.h"
-#include "utils/decision_making_struct.h"
+#include "data_structure/ros2_msg_struct.h"
+#include "data_structure/decision_making_struct.h"
 
 #include <vector>
 #include <iostream>

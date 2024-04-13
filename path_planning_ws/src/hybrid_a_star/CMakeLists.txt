@@ -46,14 +46,14 @@ ament_package()
 
 include_directories(
   include/${PROJECT_NAME}
-  include/${PROJECT_NAME}/nav
+  include/${PROJECT_NAME}/hybridastar
 )
 
-FILE(GLOB NavSources include/${PROJECT_NAME}/nav/*.cpp)
+FILE(GLOB NavSources include/${PROJECT_NAME}/hybridastar/*.cpp)
 
 add_executable(${PROJECT_NAME}
   src/path_planning.cpp
-  src/utils/map.cpp
+  src/map/map.cpp
   src/planner/planner.cpp
   src/decision_making/decision_making.cpp
   src/main.cpp
