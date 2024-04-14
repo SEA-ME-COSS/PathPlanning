@@ -38,19 +38,16 @@ private:
     DecisionMaking decision_making;
 
     std::vector<Sign> signs;
-    std::vector<Light> lights;
     Pose pose;
 
     vision_msgs::msg::Classification2D::SharedPtr sign_msg;
-    std_msgs::msg::String::SharedPtr light_msg;
     nav_msgs::msg::Odometry::SharedPtr pose_msg;
 
     bool use_sign;
-    bool use_light;
     bool use_pose;
 
     std::vector<std::vector<double>> path;
-    int throttle;
+    double throttle;
     int state;
 
     double normal_throttle;
@@ -58,7 +55,6 @@ private:
     std::deque<std::pair<float, std::vector<std::vector<double>>>> routes;
 
     rclcpp::Subscription<vision_msgs::msg::Classification2D>::SharedPtr sign_subscription_;
-    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr light_subscription_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr pose_subscription_;
 
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_publisher_;
@@ -68,7 +64,6 @@ private:
     rclcpp::TimerBase::SharedPtr publisher_timer_;
 
     void sign_callback(const vision_msgs::msg::Classification2D::SharedPtr sign_msg);
-    void light_callback(const std_msgs::msg::String::SharedPtr light_msg);
     void pose_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg);
 
     void publisher_timer_callback();
@@ -80,7 +75,6 @@ private:
     void publish_state();
 
     void update_sign();
-    void update_light();
     void update_pose();
 
     void addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose);

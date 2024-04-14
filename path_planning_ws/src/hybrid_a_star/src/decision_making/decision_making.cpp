@@ -1,10 +1,9 @@
 #include "decision_making/decision_making.hpp"
 
 DecisionMaking::DecisionMaking(VehicleState current_state, float normal_throttle,
-                std::vector<Sign> *signs, std::vector<Light> *lights, Pose *pose) {
+                std::vector<Sign> *signs, Pose *pose) {
     // Use Pointer
     this->signs = signs;
-    this->lights = lights;
     this->pose = pose;
 
     // Initialize Parameters
@@ -25,13 +24,25 @@ DecisionMaking::DecisionMaking(VehicleState current_state, float normal_throttle
     this->rotaryworthy_timecheck = false;
     this->rotaryworthy_time = std::chrono::steady_clock::time_point::min();
 
-    // Initialization
-    this->crosswalksign_ignore = 3;
-    this->rotarysign_ignore = 5;
-    this->sign_mindistance = 3.0;
-    this->status_break_time = 10;
+    this->trafficredworthy_timecheck = false;
+    this->trafficredworthy_time = std::chrono::steady_clock::time_point::min();
 
-    this->trafficlight_status = false;
+    this->trafficyellowworthy_timecheck = false;
+    this->trafficyellowworthy_time = std::chrono::steady_clock::time_point::min();
+
+    this->trafficgreenworthy_timecheck = false;
+    this->trafficgreenworthy_time = std::chrono::steady_clock::time_point::min();
+
+    // Initialization
+    this->crosswalksign_mindistance = 50.0;
+    this->crosswalksign_ignore = 6;
+
+    this->rotarysign_mindistance = 30.0;
+    this->rotarysign_ignore = 9;
+
+    this->trafficsign_mindistance = 40.0;
+
+    this->status_break_time = 5;
 }
 
 DecisionMaking::DecisionMaking() {
@@ -41,85 +52,31 @@ DecisionMaking::~DecisionMaking() {
 }
 
 void DecisionMaking::decide() {
-    if(!lights->empty()) {
-        TrafficLightStatusDecision();
-        if (this->trafficlight_status) {return;}
-    }
-    
     if(!signs->empty()) {
-        SignStatusDecision();
+        StatusDecision();
     }
     else {
         RacingState();
     }
 }
 
-void DecisionMaking::TrafficLightStatusDecision() {
-    std::string light_info = (*lights)[0].id;
-    float light_distance = (*lights)[0].distance;
-
-    this->trafficlight_status = true;
-
-    if (light_info == "traffic_red") {
-        current_state = VehicleState::TrafficLightRedBefore;
-        if(light_distance < this->sign_mindistance) {
-            current_state = VehicleState::TrafficLightRedNow;
-        }
-    }
-    else if (light_info == "traffic_yellow") {
-        current_state = VehicleState::TrafficLightYellowBefore;
-        if(light_distance < this->sign_mindistance) {
-            current_state = VehicleState::TrafficLightYellowNow;
-        }
-    }
-    else if (light_info == "traffic_green") {
-        current_state = VehicleState::TrafficLightGreenBefore;
-        if(light_distance < this->sign_mindistance) {
-            current_state = VehicleState::TrafficLightGreenNow;
-        }
-    }
-    else {
-        this->trafficlight_status = false;
-    }
-
-    switch (current_state) {
-        case VehicleState::TrafficLightRedBefore:
-            TrafficLightRedBeforeState();
-            break;
-        case VehicleState::TrafficLightRedNow:
-            TrafficLightRedNowState();
-            break;
-        case VehicleState::TrafficLightYellowBefore:
-            TrafficLightYellowBeforeState();
-            break;
-        case VehicleState::TrafficLightYellowNow:
-            TrafficLightYellowNowState();
-            break;
-        case VehicleState::TrafficLightGreenBefore:
-            TrafficLightGreenBeforeState();
-            break;
-        case VehicleState::TrafficLightGreenNow:
-            TrafficLightGreenNowState();
-            break;
-        default:
-            break;
-    }
-}
-
-void DecisionMaking::SignStatusDecision() {
+void DecisionMaking::StatusDecision() {
     std::string sign_info = (*signs)[0].id;
     float sign_distance = (*signs)[0].distance;
-
+    std::cout << "Sign Info : " << sign_info << std::endl;
     // Update State
     switch (current_state) {
         case VehicleState::Driving:
             if (sign_info=="None") { current_state = VehicleState::Driving; }
             else if (sign_info=="crosswalk") { current_state = VehicleState::CrosswalkBefore; }
             else if (sign_info=="rotary") { current_state = VehicleState::RoundAboutBefore; }
+            else if (sign_info=="traffic_red") { current_state = VehicleState::TrafficLightRedBefore; }
+            else if (sign_info=="traffic_yellow") { current_state = VehicleState::TrafficLightYellowBefore; }
+            else if (sign_info=="traffic_green") { current_state = VehicleState::TrafficLightGreenBefore; }
             else { current_state = VehicleState::Driving; }
             break;
         case VehicleState::CrosswalkBefore:
-            if((sign_info == "crosswalk" && sign_distance < this->sign_mindistance)) {
+            if((sign_info == "crosswalk" && (0 < sign_distance && sign_distance < this->crosswalksign_mindistance))) {
                 this->current_state = VehicleState::CrosswalkNow;
             }
             break;
@@ -127,11 +84,50 @@ void DecisionMaking::SignStatusDecision() {
             // Move slowly for "this->crosswalksign_ignore(default : 3.0)". After that change to Default
             break;
         case VehicleState::RoundAboutBefore:
-            if((sign_info == "rotary" && sign_distance < this->sign_mindistance)) {
+            if((sign_info == "rotary" && (0 < sign_distance && sign_distance < this->rotarysign_mindistance))) {
                 this->current_state = VehicleState::RoundAboutNow;
             }
             break;
         case VehicleState::RoundAboutNow:
+            break;
+        case VehicleState::TrafficLightRedBefore:
+            if(sign_info == "traffic_green") { this->current_state = VehicleState::TrafficLightGreenBefore; }
+            else if(sign_info == "traffic_yellow") { this->current_state = VehicleState::TrafficLightYellowBefore; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
+            else if((sign_info == "traffic_red" && (0 < sign_distance && sign_distance < this->trafficsign_mindistance))) {
+                this->current_state = VehicleState::TrafficLightRedNow;
+            }
+            break;
+        case VehicleState::TrafficLightRedNow:
+            if(sign_info == "traffic_yellow") { this->current_state = VehicleState::TrafficLightYellowNow; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
+            else if(sign_info == "traffic_green") { this->current_state = VehicleState::TrafficLightGreenNow; }
+            break;
+        case VehicleState::TrafficLightYellowBefore:
+            if(sign_info == "traffic_green") { this->current_state = VehicleState::TrafficLightGreenBefore; }
+            else if(sign_info == "traffic_red") { this->current_state = VehicleState::TrafficLightRedBefore; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
+            else if((sign_info == "traffic_yellow" && (0 < sign_distance && sign_distance < this->trafficsign_mindistance))) {
+                this->current_state = VehicleState::TrafficLightYellowNow;
+            }
+            break;
+        case VehicleState::TrafficLightYellowNow:
+            if(sign_info == "traffic_green") { this->current_state = VehicleState::TrafficLightGreenNow; }
+            else if(sign_info == "traffic_red") { this->current_state = VehicleState::TrafficLightRedNow; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
+            break;
+        case VehicleState::TrafficLightGreenBefore:
+            if(sign_info == "traffic_yellow") { this->current_state = VehicleState::TrafficLightYellowBefore; }
+            else if(sign_info == "traffic_red") { this->current_state = VehicleState::TrafficLightRedBefore; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
+            else if((sign_info == "traffic_green" && (0 < sign_distance && sign_distance < this->trafficsign_mindistance))) {
+                this->current_state = VehicleState::TrafficLightGreenNow;
+            }
+            break;
+        case VehicleState::TrafficLightGreenNow:
+            if(sign_info == "traffic_yellow") { this->current_state = VehicleState::TrafficLightYellowNow; }
+            else if(sign_info == "traffic_red") { this->current_state = VehicleState::TrafficLightRedNow; }
+            else if(sign_info == "None") { this->current_state = VehicleState::Driving; }
             break;
         default:
             current_state = VehicleState::Driving;
@@ -154,6 +150,24 @@ void DecisionMaking::SignStatusDecision() {
         case VehicleState::RoundAboutNow:
             RoundAboutNowState();
             break;
+        case VehicleState::TrafficLightRedBefore:
+            TrafficLightRedBeforeState();
+            break;
+        case VehicleState::TrafficLightRedNow:
+            TrafficLightRedNowState();
+            break;
+        case VehicleState::TrafficLightYellowBefore:
+            TrafficLightYellowBeforeState();
+            break;
+        case VehicleState::TrafficLightYellowNow:
+            TrafficLightYellowNowState();
+            break;
+        case VehicleState::TrafficLightGreenBefore:
+            TrafficLightGreenBeforeState();
+            break;
+        case VehicleState::TrafficLightGreenNow:
+            TrafficLightGreenNowState();
+            break;
         default:
             DefaultState();
             break;
@@ -167,6 +181,9 @@ void DecisionMaking::DefaultState() {
 
 void DecisionMaking::TrafficLightRedBeforeState() {
     std::cout << "Red Traffic Light Before Status" << std::endl;
+    if(!isSignWorthy("traffic_red", this->trafficredworthy_timecheck, this->trafficredworthy_time)) {
+        this->current_state = VehicleState::Driving;
+    }
     this->throttle = this->normal_throttle;
 }
 
@@ -177,6 +194,9 @@ void DecisionMaking::TrafficLightRedNowState() {
 
 void DecisionMaking::TrafficLightYellowBeforeState() {
     std::cout << "Yellow Traffic Light Before Status" << std::endl;
+    if(!isSignWorthy("traffic_yellow", this->trafficyellowworthy_timecheck, this->trafficyellowworthy_time)) {
+        this->current_state = VehicleState::Driving;
+    }
     this->throttle = this->normal_throttle;
 }
 
@@ -187,6 +207,9 @@ void DecisionMaking::TrafficLightYellowNowState() {
 
 void DecisionMaking::TrafficLightGreenBeforeState() {
     std::cout << "Green Traffic Light Before Status" << std::endl;
+    if(!isSignWorthy("traffic_green", this->trafficgreenworthy_timecheck, this->trafficgreenworthy_time)) {
+        this->current_state = VehicleState::Driving;
+    }
     this->throttle = this->normal_throttle;
 }
 

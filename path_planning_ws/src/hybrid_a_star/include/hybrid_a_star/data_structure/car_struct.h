@@ -9,8 +9,8 @@ struct Car {
     // Vehicle Config
     double RF = 3.3;    // [cm] distance from rear to vehicle front end of vehicle
     double RB = 0.8;    // [cm] distance from rear to vehicle back end of vehicle
-    double W = 20.0;     // [cm] width of vehicle
-    double H = 26.0;
+    double W = 23.5;     // [cm] width of vehicle
+    double H = 29.6;
     double WD = 0.7*W;  // [cm] distance between left-right wheels
     double WB = 2.5;    // [cm] Wheel base
     double TR = 0.44;   // [cm] Tyre radius

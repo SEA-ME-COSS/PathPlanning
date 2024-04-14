@@ -12,7 +12,7 @@
 class DecisionMaking {
 public:
     DecisionMaking(VehicleState current_state, float normal_throttle,
-                   std::vector<Sign> *signs, std::vector<Light> *lights, Pose *pose);
+                   std::vector<Sign> *signs, Pose *pose);
     DecisionMaking();
     ~DecisionMaking();
 
@@ -22,7 +22,6 @@ public:
 
 private:
     std::vector<Sign> *signs;
-    std::vector<Light> *lights;
     Pose *pose;
 
     float throttle;
@@ -42,15 +41,30 @@ private:
     bool rotaryworthy_timecheck;
     std::chrono::steady_clock::time_point rotaryworthy_time;
 
+    bool trafficredworthy_timecheck;
+    std::chrono::steady_clock::time_point trafficredworthy_time;
+
+    bool trafficyellowworthy_timecheck;
+    std::chrono::steady_clock::time_point trafficyellowworthy_time;
+
+    bool trafficgreenworthy_timecheck;
+    std::chrono::steady_clock::time_point trafficgreenworthy_time;
+
+    float crosswalksign_mindistance;
     float crosswalksign_ignore;
+
+    float rotarysign_mindistance;
     float rotarysign_ignore;
-    float sign_mindistance;
+
+    float trafficsign_mindistance;
+    
     float status_break_time;
 
     bool trafficlight_status;
 
-    void TrafficLightStatusDecision();
-    void SignStatusDecision();
+    bool previous_greentraffic;
+
+    void StatusDecision();
 
     void DefaultState();
     void TrafficLightRedBeforeState();

@@ -15,7 +15,7 @@ Planner::Planner(Map* map, double resolution, std::vector<std::array<int, 3>> wa
 	this->info.change_penalty = 3.0;
 	this->info.non_straight_penalty = 2.0;
 	this->info.reverse_penalty = 2.0;
-	this->info.minimum_turning_radius = 60.0;
+	this->info.minimum_turning_radius = 120.0;
 
 	this->theta_resolution = 5;
 

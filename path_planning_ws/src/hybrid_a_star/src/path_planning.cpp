@@ -23,15 +23,14 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // Select Using Messages
     // CHECK 5 vector initialization is needed
     this->use_sign = false;
-    this->use_light = false;
     this->use_pose = false;
     
     // Decision Making Initialization
     VehicleState current_state = VehicleState::Driving;
-    this->normal_throttle = 1.0;
+    this->normal_throttle = 0.45;
 
     decision_making = DecisionMaking(current_state, this->normal_throttle,
-                                &(this->signs), &(this->lights), &(this->pose));
+                                &(this->signs), &(this->pose));
 
     // Initialization
     this->throttle = 0;
@@ -40,8 +39,6 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     // ROS Subscription
     sign_subscription_ = this->create_subscription<vision_msgs::msg::Classification2D>(
         "/perception/sign", 10, std::bind(&PathPlanning::sign_callback, this,  std::placeholders::_1));
-    light_subscription_ = this->create_subscription<std_msgs::msg::String>(
-        "/perception/light", 10, std::bind(&PathPlanning::light_callback, this,  std::placeholders::_1));
     pose_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "/piracer/odom", 10, std::bind(&PathPlanning::pose_callback, this,  std::placeholders::_1));
 
@@ -54,7 +51,7 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
         "/planner/state", 10);
 
     publisher_timer_ = this->create_wall_timer(
-        std::chrono::milliseconds(1000),
+        std::chrono::milliseconds(100),
         std::bind(&PathPlanning::publisher_timer_callback, this)
     );
 
@@ -63,10 +60,6 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
 
 void PathPlanning::sign_callback(const vision_msgs::msg::Classification2D::SharedPtr sign_msg) {
     this->sign_msg = sign_msg;
-}
-
-void PathPlanning::light_callback(const std_msgs::msg::String::SharedPtr light_msg) {
-    this->light_msg = light_msg;
 }
 
 void PathPlanning::pose_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg) {
@@ -83,7 +76,7 @@ void PathPlanning::publisher_timer_callback() {
     // Decision Making with Using Messages
     this->decision_making.decide();
 
-    this->throttle = static_cast<int>(this->decision_making.getThrottle());
+    this->throttle = this->decision_making.getThrottle();
     this->state = this->decision_making.getState();
     
     this->publish_path();
@@ -93,14 +86,12 @@ void PathPlanning::publisher_timer_callback() {
 
 bool PathPlanning::isUseMessageValid() {
     if (this->use_sign) {if (!this->sign_msg) { std::cout << "Sign Message Error" << std::endl; return false;}}
-    if (this->use_light) {if (!this->light_msg) {return false;}}
     if (this->use_pose) {if (!this->pose_msg) {return false;}}
     return true;
 }
 
 void PathPlanning::updateUseMessages() {
     if (this->use_sign) {this->update_sign();}
-    if (this->use_light) {this->update_light();}
     if (this->use_pose) {this->update_pose();}
 }
 
@@ -119,7 +110,6 @@ void PathPlanning::publish_path() {
 void PathPlanning::publish_throttle() {
     example_interfaces::msg::Float64 throttle_msg;
     throttle_msg.data = this->throttle;
-    // std::cout << "Throttle : " << throttle_msg.data << std::endl;
     this->throttle_publisher_->publish(throttle_msg);
 }
 
@@ -159,16 +149,6 @@ void PathPlanning::update_pose(){
                         + pow(pose_msg->twist.twist.linear.y, 2)) * 100;  // [cm/s]
 
     std::cout << "X pose : " << this->pose.x << " Y pose : " << this->pose.y << " Yaw : " << this->pose.yaw  << " Speed : " << this->pose.v << std::endl;
-}
-
-void PathPlanning::update_light() {
-    this->lights.clear();
-    Light light;
-
-    if(!light_msg->data.empty()) {
-        light.id = light_msg->data;
-        this->lights.push_back(light);
-    }
 }
 
 void PathPlanning::addPose(nav_msgs::msg::Path& path_msg, std::vector<double> pose) {
