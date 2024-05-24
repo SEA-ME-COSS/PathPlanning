@@ -2,12 +2,12 @@
 
 PathPlanning::PathPlanning() : rclcpp::Node("a_star") {
     // Load Waypoints Info
-    std::string nodes_file_path = "src/path_planning/include/path_planning/globalmap/parsinginfo.txt";
-    std::string waypoints_file_path = "src/path_planning/include/path_planning/globalmap/waypoints.txt";
+    std::string nodes_file_path = "src/path_planning/include/path_planning/a_star/globalmap/parsinginfo.txt";
+    std::string waypoints_file_path = "src/path_planning/include/path_planning/a_star/globalmap/waypoints.txt";
     std::vector<std::vector<double>> waypoints = load_waypoints(nodes_file_path, waypoints_file_path);
 
     // Make Map Instruction
-    std::string map_file_path = "src/path_planning/include/path_planning/globalmap/flipped-track.txt";
+    std::string map_file_path = "src/path_planning/include/path_planning/a_star/globalmap/flipped-track.txt";
     Map map = Map(map_file_path);
 
     // Path Planner
