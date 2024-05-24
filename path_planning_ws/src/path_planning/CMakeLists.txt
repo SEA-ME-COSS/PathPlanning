@@ -38,26 +38,49 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
-
 include_directories(
-  include/${PROJECT_NAME}
+  include/${PROJECT_NAME}/a_star
+  include/${PROJECT_NAME}/bfs
 )
 
-add_executable(${PROJECT_NAME}
-  src/path_planning.cpp
-  src/main.cpp
-  src/utils/map.cpp
-  src/utils/loader.cpp
-  src/planner/planner.cpp
-  src/planner/a_star.cpp
-  src/planner/bfs.cpp
-  src/decision_making/decision_making.cpp
+# bfs node
+add_executable(bfs
+  src/bfs/path_planning.cpp
+  src/bfs/main.cpp
+  src/bfs/utils/map.cpp
+  src/bfs/utils/loader.cpp
+  src/bfs/planner/planner.cpp
+  src/bfs/planner/bfs.cpp
+  src/bfs/decision_making/decision_making.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs vision_msgs nav_msgs geometry_msgs nav_msgs tf2 tf2_geometry_msgs example_interfaces)
+ament_target_dependencies(bfs
+  rclcpp std_msgs vision_msgs nav_msgs geometry_msgs tf2 tf2_geometry_msgs example_interfaces
+)
+
+# a_star node
+add_executable(a_star
+  src/a_star/path_planning.cpp
+  src/a_star/main.cpp
+  src/a_star/utils/map.cpp
+  src/a_star/utils/loader.cpp
+  src/a_star/planner/planner.cpp
+  src/a_star/planner/a_star.cpp
+  src/a_star/decision_making/decision_making.cpp
+)
+
+ament_target_dependencies(a_star
+  rclcpp std_msgs vision_msgs nav_msgs geometry_msgs tf2 tf2_geometry_msgs example_interfaces
+)
 
 install(TARGETS
-  ${PROJECT_NAME}
+  bfs
+  a_star
   DESTINATION lib/${PROJECT_NAME}
 )
+
+# install(DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}/
+# )
+
+ament_package()

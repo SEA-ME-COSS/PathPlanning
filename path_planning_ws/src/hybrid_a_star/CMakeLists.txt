@@ -68,7 +68,18 @@ target_link_libraries(${PROJECT_NAME}
   ${CERES_LIBRARIES}
 )
 
+# Install executables
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# Install config files
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
 )

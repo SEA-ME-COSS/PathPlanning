@@ -3,7 +3,6 @@
 #include "utils/loader.hpp"
 #include "utils/map.hpp"
 #include "planner/planner.hpp"
-#include "planner/a_star.hpp"
 #include "planner/bfs.hpp"
 #include "decision_making/decision_making.hpp"
 #include "msg_struct.h"

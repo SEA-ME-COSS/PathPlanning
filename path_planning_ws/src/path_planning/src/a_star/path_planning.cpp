@@ -1,6 +1,6 @@
 #include "path_planning.hpp"
 
-PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
+PathPlanning::PathPlanning() : rclcpp::Node("a_star") {
     // Load Waypoints Info
     std::string nodes_file_path = "src/path_planning/include/path_planning/globalmap/parsinginfo.txt";
     std::string waypoints_file_path = "src/path_planning/include/path_planning/globalmap/waypoints.txt";
@@ -11,8 +11,7 @@ PathPlanning::PathPlanning() : rclcpp::Node("path_planning") {
     Map map = Map(map_file_path);
 
     // Path Planner
-    // this->planner = std::make_unique<A_Star>(map);
-    this->planner = std::make_unique<BFS>(map);
+    this->planner = std::make_unique<A_Star>(map);
     planner->plan_with_waypoints(waypoints);
     this->path = planner->get_waypoints_path();
 
