@@ -51,4 +51,5 @@ make
 # Reference
 
 - [Hybrid A Star](https://github.com/bmegli/hybrid-a-star)
+- [Hybrid A Star Documentation](https://docs.nav2.org/configuration/packages/smac/configuring-smac-hybrid.html?highlight=hybrid)
 - [ROS2 foxy](https://docs.ros.org/en/foxy/index.html)
