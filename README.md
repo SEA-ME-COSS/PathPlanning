@@ -1,5 +1,7 @@
 # About
 
+<img src=/images/Architecture_PathPlanning.png alt="Architecture_PathPlanning" width="100%" height="100%"/>
+
 This repository corresponds to the Path Planning part of an Autonomous Driving System. It uses ROS2 to subscribe to various information from perception and publishes the path and velocity to be followed. Based on the information received from perception, it makes decisions and determines the velocity accordingly. Then, it uses the hybrid A* developed in ROS2 to create the required path. If you're interested in a detailed usage of these algorithms, visit the following repository to test them out.
 
 # Requirements
